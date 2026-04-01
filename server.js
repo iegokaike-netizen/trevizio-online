@@ -27,42 +27,34 @@ function writeJson(file, data) {
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, JSON.stringify(data, null, 2), "utf8");
 }
-function seedFiles() {
-  if (!fs.existsSync(USERS_PATH)) {
-    writeJson(USERS_PATH, [
-      { user: "admin", senha: "123456", status: "ativo", nome: "Administrador", role: "admin" },
-      { user: "colab1", senha: "123456", status: "ativo", nome: "Colaborador 1", role: "colaborador" }
-    ]);
-  }
-  if (!fs.existsSync(ACCOUNTS_PATH)) writeJson(ACCOUNTS_PATH, []);
-  if (!fs.existsSync(ORDERS_PATH)) writeJson(ORDERS_PATH, []);
-  if (!fs.existsSync(AGES_PATH)) writeJson(AGES_PATH, {});
+
+if (!fs.existsSync(USERS_PATH)) {
+  writeJson(USERS_PATH, [
+    { user: "admin", senha: "123456", status: "ativo", nome: "Administrador", role: "admin" },
+    { user: "colab1", senha: "123456", status: "ativo", nome: "Colaborador 1", role: "colaborador" }
+  ]);
 }
-seedFiles();
+if (!fs.existsSync(ACCOUNTS_PATH)) writeJson(ACCOUNTS_PATH, []);
+if (!fs.existsSync(ORDERS_PATH)) writeJson(ORDERS_PATH, []);
+if (!fs.existsSync(AGES_PATH)) writeJson(AGES_PATH, {});
 
 app.use(express.json({ limit: "1mb" }));
-app.use(express.urlencoded({ extended: true }));
 app.use(session({
   secret: SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
-  cookie: {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: false,
-    maxAge: 1000 * 60 * 60 * 12
-  }
+  cookie: { httpOnly: true, sameSite: "lax", secure: false, maxAge: 1000 * 60 * 60 * 12 }
 }));
 app.use(express.static(path.join(__dirname, "public")));
 
-function getUsers() { return readJson(USERS_PATH, []); }
-function saveUsers(users) { writeJson(USERS_PATH, users); }
-function getAccounts() { return readJson(ACCOUNTS_PATH, []); }
-function saveAccounts(accounts) { writeJson(ACCOUNTS_PATH, accounts); }
-function getOrders() { return readJson(ORDERS_PATH, []); }
-function saveOrders(orders) { writeJson(ORDERS_PATH, orders); }
-function getAges() { return readJson(AGES_PATH, {}); }
-function saveAges(ages) { writeJson(AGES_PATH, ages); }
+const getUsers = () => readJson(USERS_PATH, []);
+const saveUsers = v => writeJson(USERS_PATH, v);
+const getAccounts = () => readJson(ACCOUNTS_PATH, []);
+const saveAccounts = v => writeJson(ACCOUNTS_PATH, v);
+const getOrders = () => readJson(ORDERS_PATH, []);
+const saveOrders = v => writeJson(ORDERS_PATH, v);
+const getAges = () => readJson(AGES_PATH, {});
+const saveAges = v => writeJson(AGES_PATH, v);
 
 function currentUser(req) {
   const s = req.session?.user;
@@ -87,6 +79,7 @@ function requireAdmin(req, res, next) {
     next();
   });
 }
+
 function ageKey(alias, cpf, cliente) {
   return `${alias}|${cpf || ""}|${cliente || ""}`;
 }
@@ -99,6 +92,7 @@ async function refreshTokenIfNeeded(alias) {
   if (idx < 0) throw new Error("Conta não encontrada.");
   const a = accounts[idx];
   if (!a.refresh_token) return a;
+
   let doRefresh = true;
   if (a.expires_at) {
     const exp = new Date(a.expires_at).getTime();
@@ -107,10 +101,7 @@ async function refreshTokenIfNeeded(alias) {
   if (!doRefresh) return a;
 
   const auth = Buffer.from(`${a.clientId}:${a.clientSecret}`).toString("base64");
-  const body = new URLSearchParams({
-    grant_type: "refresh_token",
-    refresh_token: a.refresh_token
-  });
+  const body = new URLSearchParams({ grant_type: "refresh_token", refresh_token: a.refresh_token });
 
   const resp = await fetch("https://www.bling.com.br/Api/v3/oauth/token", {
     method: "POST",
@@ -123,6 +114,7 @@ async function refreshTokenIfNeeded(alias) {
   });
   const data = await resp.json();
   if (!resp.ok) throw new Error(data?.error?.description || data?.error || "Falha ao atualizar token.");
+
   a.access_token = data.access_token;
   a.refresh_token = data.refresh_token;
   a.expires_at = new Date(Date.now() + Number(data.expires_in || 0) * 1000).toISOString();
@@ -141,15 +133,19 @@ async function blingHeaders(alias) {
 }
 function normalizeOrder(alias, item) {
   const ages = getAges();
-  const pedidoId = String(item?.id ?? "");
-  const pedidoNumero = String(item?.numero ?? item?.id ?? "");
   const cliente = item?.contato?.nome || item?.cliente?.nome || "";
   const cpf = item?.contato?.numeroDocumento || item?.contato?.cpf || item?.cliente?.numeroDocumento || "";
-  const data = item?.data || item?.dataCriacao || "";
-  const valor = item?.total || item?.valor || "";
-  const nota = item?.notaFiscal?.numero || item?.notaFiscal?.id || "";
-  const idade = ages[ageKey(alias, cpf, cliente)] ?? "";
-  return { alias, pedidoId, pedidoNumero, data, cliente, cpf, idade, valor, nota };
+  return {
+    alias,
+    pedidoId: String(item?.id ?? ""),
+    pedidoNumero: String(item?.numero ?? item?.id ?? ""),
+    data: item?.data || item?.dataCriacao || "",
+    cliente,
+    cpf,
+    idade: ages[ageKey(alias, cpf, cliente)] ?? "",
+    valor: item?.total || item?.valor || "",
+    nota: item?.notaFiscal?.numero || item?.notaFiscal?.id || ""
+  };
 }
 function joinAddress(obj) {
   if (!obj) return "";
@@ -182,16 +178,11 @@ app.post("/api/login-access", (req, res) => {
   req.session.user = { user: u.user };
   return res.json({ ok: true, session: { user: u.user, nome: u.nome, status: u.status, role: u.role } });
 });
-app.get("/api/session-status-access", requireLogin, (req, res) => {
-  res.json({ ok: true, session: req.currentUser });
-});
-app.post("/api/logout-access", (req, res) => {
-  req.session.destroy(() => res.json({ ok: true }));
-});
+app.get("/api/session-status-access", requireLogin, (req, res) => res.json({ ok: true, session: req.currentUser }));
+app.post("/api/logout-access", (req, res) => req.session.destroy(() => res.json({ ok: true })));
 
 app.get("/api/users-access", requireLogin, (_req, res) => {
-  const users = getUsers().map(u => ({ user: u.user, nome: u.nome, status: u.status, role: u.role }));
-  res.json({ ok: true, users });
+  res.json({ ok: true, users: getUsers().map(u => ({ user: u.user, nome: u.nome, status: u.status, role: u.role })) });
 });
 app.post("/api/users-access", requireAdmin, (req, res) => {
   const { user, senha, nome, role } = req.body || {};
@@ -266,8 +257,10 @@ app.get("/callback", async (req, res) => {
     const idx = accounts.findIndex(a => a.alias === pending.alias);
     if (idx < 0) throw new Error("Conta pendente não encontrada.");
     const a = accounts[idx];
+
     const auth = Buffer.from(`${a.clientId}:${a.clientSecret}`).toString("base64");
     const body = new URLSearchParams({ grant_type: "authorization_code", code: String(code) });
+
     const resp = await fetch("https://www.bling.com.br/Api/v3/oauth/token", {
       method: "POST",
       headers: {
@@ -279,12 +272,14 @@ app.get("/callback", async (req, res) => {
     });
     const data = await resp.json();
     if (!resp.ok) throw new Error(data?.error?.description || data?.error || "Falha ao conectar conta.");
+
     a.access_token = data.access_token;
     a.refresh_token = data.refresh_token;
     a.expires_at = new Date(Date.now() + Number(data.expires_in || 0) * 1000).toISOString();
     accounts[idx] = a;
     saveAccounts(accounts);
     delete req.session.pendingBling;
+
     res.send(`<html><body style="font-family:Segoe UI;background:#0b1220;color:#fff;padding:30px"><h2>Conta conectada com sucesso.</h2><p>Volte para o app e clique em Sincronizar todas.</p></body></html>`);
   } catch (e) {
     res.status(500).send(`<html><body style="font-family:Segoe UI;background:#0b1220;color:#fff;padding:30px"><h2>Erro ao conectar conta.</h2><p>${String(e.message)}</p></body></html>`);
@@ -313,9 +308,9 @@ app.post("/api/sync-all", requireAdmin, async (_req, res) => {
     res.status(500).json({ error: e.message });
   }
 });
-app.get("/api/orders", requireLogin, (_req, res) => {
-  res.json({ orders: getOrders() });
-});
+
+app.get("/api/orders", requireLogin, (_req, res) => res.json({ orders: getOrders() }));
+
 app.get("/api/order/:alias/:pedidoId", requireLogin, async (req, res) => {
   try {
     const { alias, pedidoId } = req.params;
@@ -324,37 +319,39 @@ app.get("/api/order/:alias/:pedidoId", requireLogin, async (req, res) => {
     const data = await resp.json();
     if (!resp.ok) throw new Error(data?.error?.description || data?.error || "Falha ao buscar pedido.");
     const raw = data.data || data;
-    const detail = {
-      alias,
-      pedido: pedidoId,
-      cliente: raw?.contato?.nome || "",
-      cpf: raw?.contato?.numeroDocumento || raw?.contato?.cpf || "",
-      data: raw?.data || "",
-      valor: raw?.total || raw?.valor || "",
-      nota: raw?.notaFiscal?.numero || raw?.notaFiscal?.id || "",
-      endereco: raw?.transporte?.etiqueta ? joinAddress(raw.transporte.etiqueta) : "",
-      itemDescricao: raw?.itens?.[0]?.descricao || raw?.itens?.[0]?.descricaoDetalhada || raw?.itens?.[0]?.codigo || "",
-      subtotal: raw?.total || raw?.valor || "",
-      total: raw?.total || raw?.valor || "",
-      rawHint: raw?.itens?.length ? "" : "Item não veio no formato esperado."
-    };
-    res.json({ detail });
+    res.json({
+      detail: {
+        alias,
+        pedido: pedidoId,
+        cliente: raw?.contato?.nome || "",
+        cpf: raw?.contato?.numeroDocumento || raw?.contato?.cpf || "",
+        data: raw?.data || "",
+        valor: raw?.total || raw?.valor || "",
+        nota: raw?.notaFiscal?.numero || raw?.notaFiscal?.id || "",
+        endereco: raw?.transporte?.etiqueta ? joinAddress(raw.transporte.etiqueta) : "",
+        itemDescricao: raw?.itens?.[0]?.descricao || raw?.itens?.[0]?.descricaoDetalhada || raw?.itens?.[0]?.codigo || "",
+        subtotal: raw?.total || raw?.valor || "",
+        total: raw?.total || raw?.valor || "",
+        rawHint: raw?.itens?.length ? "" : "Item não veio no formato esperado."
+      }
+    });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
 });
+
 app.post("/api/age", requireLogin, (req, res) => {
   const { alias, cpf, cliente, idade } = req.body || {};
   const ages = getAges();
   ages[ageKey(alias, cpf, cliente)] = idade;
   saveAges(ages);
-  const orders = getOrders().map(o => {
+  saveOrders(getOrders().map(o => {
     if (o.alias === alias && ((o.cpf && o.cpf === cpf) || (!o.cpf && o.cliente === cliente))) o.idade = idade;
     return o;
-  });
-  saveOrders(orders);
+  }));
   res.json({ ok: true });
 });
+
 app.post("/api/clear-bling", requireAdmin, (_req, res) => {
   saveAccounts([]);
   saveOrders([]);

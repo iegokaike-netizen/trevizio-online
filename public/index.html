@@ -21,7 +21,7 @@ button{background:#2168ff;border:none;cursor:pointer;font-weight:700}.secondary{
 .tablewrap{border:1px solid #1e3353;border-radius:14px;max-height:560px;overflow:auto}table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:10px 8px;border-bottom:1px solid #1b2d48;vertical-align:top}th{position:sticky;top:0;background:#101a2d;color:#9fb5d6}
 .small{font-size:12px}.noteBox{background:#0c1423;border:1px solid #28466f;border-radius:14px;padding:14px;min-height:160px}.noteGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:12px}.noteItem{background:#101a2d;border:1px solid #1e3353;border-radius:12px;padding:10px}
 .badge{display:inline-block;padding:4px 8px;border-radius:999px;font-size:12px}.ok{background:#0f3d28}.warn{background:#5b3b06}.info{background:#16335c}
-.acct{padding:10px;border:1px solid #28466f;border-radius:12px;margin-bottom:8px;background:#0c1423}.code{background:#0c1423;border:1px solid #28466f;border-radius:12px;padding:12px;font-family:Consolas,monospace;white-space:pre-wrap;font-size:12px}
+.acct{padding:10px;border:1px solid #28466f;border-radius:12px;margin-bottom:8px;background:#0c1423}
 </style>
 </head>
 <body>
@@ -32,7 +32,7 @@ button{background:#2168ff;border:none;cursor:pointer;font-weight:700}.secondary{
       <h3>Entrar no sistema</h3>
       <label>Usuário</label><input id="loginUser" placeholder="Digite o usuário">
       <label style="margin-top:10px;">Senha</label><input id="loginPass" type="password" placeholder="Digite a senha">
-      <div class="grid2" style="margin-top:10px;"><button onclick="fazerLogin()">Entrar</button><button class="secondary" onclick="carregarDemo()">Login demo</button></div>
+      <div class="grid2" style="margin-top:10px;"><button id="btnLogin" type="button">Entrar</button><button class="secondary" id="btnDemo" type="button">Login demo</button></div>
       <div class="status" id="loginStatus">Login inicial: admin / 123456</div>
     </div>
     <div>
@@ -55,7 +55,7 @@ button{background:#2168ff;border:none;cursor:pointer;font-weight:700}.secondary{
         <div class="card">
           <h3>Painel do usuário</h3>
           <div style="margin-bottom:8px;"><span class="badge info" id="badgeRole">-</span> <span class="badge ok" id="badgeStatus">ativo</span></div>
-          <div class="grid2" style="margin-top:12px;"><button class="secondary" onclick="validarSessao()">Validar agora</button><button class="danger" onclick="logout()">Sair</button></div>
+          <div class="grid2" style="margin-top:12px;"><button id="btnValidar" class="secondary" type="button">Validar agora</button><button id="btnLogout" class="danger" type="button">Sair</button></div>
           <div class="status" id="mainStatus">Sistema carregado.</div>
         </div>
 
@@ -64,9 +64,8 @@ button{background:#2168ff;border:none;cursor:pointer;font-weight:700}.secondary{
           <label>Usuário</label><input id="newUser" placeholder="Ex: joao">
           <label style="margin-top:10px;">Senha</label><input id="newPass" placeholder="Ex: 123456">
           <label style="margin-top:10px;">Nome</label><input id="newName" placeholder="Ex: João Silva">
-          <label style="margin-top:10px;">Cargo</label>
-          <select id="newRole"><option value="colaborador">colaborador</option><option value="admin">admin</option></select>
-          <div class="grid2" style="margin-top:10px;"><button class="green" onclick="criarUsuario()">Criar acesso</button><button class="secondary" onclick="limparFormulario()">Limpar</button></div>
+          <label style="margin-top:10px;">Cargo</label><select id="newRole"><option value="colaborador">colaborador</option><option value="admin">admin</option></select>
+          <div class="grid2" style="margin-top:10px;"><button id="btnCriar" class="green" type="button">Criar acesso</button><button id="btnLimparForm" class="secondary" type="button">Limpar</button></div>
           <div class="status" id="adminStatus">Somente admin mexe aqui.</div>
         </div>
 
@@ -75,16 +74,15 @@ button{background:#2168ff;border:none;cursor:pointer;font-weight:700}.secondary{
           <label>Apelido da loja</label><input id="alias" placeholder="Ex: Loja 1 / Bling Matriz">
           <label style="margin-top:10px;">Client ID</label><input id="clientId" value="6b14b951dd183f8524b6fe8d1b90228be2283f7a">
           <label style="margin-top:10px;">Client Secret</label><input id="clientSecret" type="password" placeholder="Digite aqui só no seu PC">
-          <div class="grid2" style="margin-top:10px;"><button onclick="salvarConta()">Salvar conta</button><button class="secondary" onclick="conectarConta()">Conectar conta</button></div>
-          <div class="grid2" style="margin-top:10px;"><button class="green" onclick="sincronizarTudo()">Sincronizar todas</button><button class="danger" onclick="limparDados()">Limpar dados</button></div>
+          <div class="grid2" style="margin-top:10px;"><button id="btnSalvarConta" type="button">Salvar conta</button><button id="btnConectarConta" class="secondary" type="button">Conectar conta</button></div>
+          <div class="grid2" style="margin-top:10px;"><button id="btnSync" class="green" type="button">Sincronizar todas</button><button id="btnLimparDados" class="danger" type="button">Limpar dados</button></div>
         </div>
 
         <div class="card">
           <h3>Filtros</h3>
-          <label>Loja</label><select id="fLoja" onchange="render()"><option value="TODAS">Todas</option></select>
-          <label style="margin-top:10px;">Faixa etária</label>
-          <select id="faixa" onchange="render()"><option value="TODOS">Todos</option><option value="0-17">0-17</option><option value="18-25">18-25</option><option value="26-35">26-35</option><option value="36-50">36-50</option><option value="51+">51+</option><option value="Sem idade">Sem idade</option></select>
-          <label style="margin-top:10px;">Buscar</label><input id="busca" onkeyup="render()" placeholder="Nome, CPF, pedido ou nota">
+          <label>Loja</label><select id="fLoja"><option value="TODAS">Todas</option></select>
+          <label style="margin-top:10px;">Faixa etária</label><select id="faixa"><option value="TODOS">Todos</option><option value="0-17">0-17</option><option value="18-25">18-25</option><option value="26-35">26-35</option><option value="36-50">36-50</option><option value="51+">51+</option><option value="Sem idade">Sem idade</option></select>
+          <label style="margin-top:10px;">Buscar</label><input id="busca" placeholder="Nome, CPF, pedido ou nota">
         </div>
       </div>
 
@@ -99,36 +97,249 @@ button{background:#2168ff;border:none;cursor:pointer;font-weight:700}.secondary{
 </div>
 <script>
 let pedidos=[], contas=[], currentSession=null, pollTimer=null;
-function setLoginStatus(msg){document.getElementById('loginStatus').textContent=msg;}
-function setMainStatus(msg){document.getElementById('mainStatus').textContent=msg;}
-function setAdminStatus(msg){document.getElementById('adminStatus').textContent=msg;}
-async function api(path,opts){const r=await fetch(path,opts||{});const t=await r.text();let d={};try{d=t?JSON.parse(t):{}}catch(e){d={raw:t}}if(!r.ok) throw new Error(d.error||d.raw||r.statusText);return d;}
-function carregarDemo(){setLoginStatus('Login demo: admin / 123456');}
-async function fazerLogin(){try{const user=document.getElementById('loginUser').value.trim();const senha=document.getElementById('loginPass').value;const r=await api('/api/login-access',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user,senha})});abrirApp(r.session);}catch(e){setLoginStatus('Erro no login: '+e.message);}}
-function abrirApp(session){currentSession=session;document.getElementById('loginView').classList.add('hidden');document.getElementById('appView').classList.remove('hidden');atualizarPainel(session);carregarUsuarios();carregarContas();carregarPedidos();if(pollTimer) clearInterval(pollTimer);pollTimer=setInterval(validarSessao,20000);}
-function atualizarPainel(session){currentSession=session;document.getElementById('sUser').textContent=session.user||'-';document.getElementById('sRole').textContent=session.role||'-';document.getElementById('badgeRole').textContent=session.role||'-';document.getElementById('badgeStatus').textContent=session.status||'-';document.getElementById('badgeStatus').className='badge '+(session.status==='ativo'?'ok':'warn');const isAdmin=session.role==='admin';document.getElementById('adminUsersCard').style.display=isAdmin?'block':'none';document.getElementById('adminAccountsCard').style.display=isAdmin?'block':'none';}
-async function validarSessao(){try{const r=await api('/api/session-status-access');currentSession=r.session;atualizarPainel(r.session);if(r.session.status!=='ativo'){alert('Seu acesso foi bloqueado.');await logout();}}catch(e){alert('Sessão encerrada: '+e.message);await logout();}}
-async function logout(){try{await api('/api/logout-access',{method:'POST'});}catch(e){}if(pollTimer) clearInterval(pollTimer);currentSession=null;document.getElementById('appView').classList.add('hidden');document.getElementById('loginView').classList.remove('hidden');setLoginStatus('Sessão encerrada.');}
-async function carregarUsuarios(){try{const r=await api('/api/users-access');const users=r.users||[];const isAdmin=currentSession&&currentSession.role==='admin';let html='';for(const u of users){html+='<tr><td>'+esc(u.user)+'</td><td>'+esc(u.nome)+'</td><td>'+esc(u.role)+'</td><td>'+esc(u.status)+'</td><td>'+(isAdmin?('<button class="secondary" style="width:auto;margin-right:6px;" onclick="toggleStatus(\\''+escJs(u.user)+'\\',\\''+escJs(u.status)+'\\')">'+(u.status==='ativo'?'Bloquear':'Desbloquear')+'</button>'+'<button class="secondary" style="width:auto;margin-right:6px;" onclick="trocarSenha(\\''+escJs(u.user)+'\\')">Senha</button>'+(u.user!=='admin'?'<button class="danger" style="width:auto;" onclick="apagarUsuario(\\''+escJs(u.user)+'\\')">Apagar</button>':'')):'-')+'</td></tr>';}document.getElementById('usersTable').innerHTML=html||'<tr><td colspan="5">Sem usuários.</td></tr>';}catch(e){setAdminStatus('Erro ao carregar usuários: '+e.message);}}
-async function criarUsuario(){try{const user=document.getElementById('newUser').value.trim();const senha=document.getElementById('newPass').value;const nome=document.getElementById('newName').value.trim();const role=document.getElementById('newRole').value;await api('/api/users-access',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user,senha,nome,role})});setAdminStatus('Acesso criado.');limparFormulario();carregarUsuarios();}catch(e){setAdminStatus('Erro ao criar usuário: '+e.message);}}
-function limparFormulario(){document.getElementById('newUser').value='';document.getElementById('newPass').value='';document.getElementById('newName').value='';document.getElementById('newRole').value='colaborador';}
-async function toggleStatus(user,status){try{const novo=status==='ativo'?'bloqueado':'ativo';await api('/api/users-access/status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user,status:novo})});setAdminStatus('Status atualizado.');carregarUsuarios();if(currentSession&&currentSession.user===user) await validarSessao();}catch(e){setAdminStatus('Erro ao mudar status: '+e.message);}}
-async function trocarSenha(user){const senha=prompt('Nova senha para '+user+':');if(!senha) return;try{await api('/api/users-access/password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user,senha})});setAdminStatus('Senha atualizada.');}catch(e){setAdminStatus('Erro ao trocar senha: '+e.message);}}
-async function apagarUsuario(user){if(!confirm('Apagar usuário '+user+'?')) return;try{await api('/api/users-access/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user})});setAdminStatus('Usuário apagado.');carregarUsuarios();}catch(e){setAdminStatus('Erro ao apagar usuário: '+e.message);}}
-async function salvarConta(){try{await api('/api/account',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({alias:document.getElementById('alias').value.trim(),clientId:document.getElementById('clientId').value.trim(),clientSecret:document.getElementById('clientSecret').value})});setMainStatus('Conta salva.');await carregarContas();}catch(e){setMainStatus('Erro ao salvar conta: '+e.message);}}
-async function conectarConta(){try{const alias=document.getElementById('alias').value.trim();if(!alias) throw new Error('Informe o apelido da loja.');await salvarConta();window.location.href='/api/login-bling?alias='+encodeURIComponent(alias);}catch(e){setMainStatus('Erro: '+e.message);}}
-async function sincronizarTudo(){try{setMainStatus('Sincronizando todas as contas...');const r=await api('/api/sync-all',{method:'POST'});setMainStatus('Sincronização concluída. '+(r.count||0)+' pedido(s).');await carregarPedidos();await carregarContas();}catch(e){setMainStatus('Erro: '+e.message);}}
-async function limparDados(){try{await api('/api/clear-bling',{method:'POST'});setMainStatus('Dados do Bling limpos.');await carregarContas();await carregarPedidos();}catch(e){setMainStatus('Erro: '+e.message);}}
-async function carregarContas(){try{const r=await api('/api/accounts');contas=r.accounts||[];document.getElementById('sContas').textContent=contas.length;let html='';for(const c of contas){html+='<div class="acct"><b>'+esc(c.alias)+'</b>'+(c.connected?'<span class="badge info">conectada</span>':'<span class="badge warn">sem token</span>')+'<div class="muted" style="margin-top:4px;">Client ID: '+esc(c.clientId||'')+'</div></div>';}document.getElementById('accountsBox').innerHTML=html||'<div class="muted">Nenhuma conta salva ainda.</div>';const f=document.getElementById('fLoja');const cur=f.value;f.innerHTML='<option value="TODAS">Todas</option>'+contas.map(c=>'<option value="'+escAttr(c.alias)+'">'+esc(c.alias)+'</option>').join('');if([...f.options].some(o=>o.value===cur)) f.value=cur;}catch(e){setMainStatus('Erro ao carregar contas: '+e.message);}}
-function faixa(idade){if(idade==null||idade===''||isNaN(Number(idade))) return 'Sem idade';idade=Number(idade);if(idade<=17) return '0-17';if(idade<=25) return '18-25';if(idade<=35) return '26-35';if(idade<=50) return '36-50';return '51+';}
-async function carregarPedidos(){try{const r=await api('/api/orders');pedidos=r.orders||[];render();}catch(e){setMainStatus('Erro ao carregar pedidos: '+e.message);}}
-function render(){const lojaSel=document.getElementById('fLoja').value,faixaSel=document.getElementById('faixa').value,busca=document.getElementById('busca').value.toLowerCase().trim();let html='',filtrados=0;for(const p of pedidos){const fx=faixa(p.idade);const base=[p.alias,p.pedidoNumero||p.pedidoId,p.data,p.cliente,p.cpf,p.nota,p.valor].join(' ').toLowerCase();if((lojaSel!=='TODAS'&&p.alias!==lojaSel)||(faixaSel!=='TODOS'&&fx!==faixaSel)||(busca&&!base.includes(busca))) continue;filtrados++;const key=(p.alias||'')+'|'+(p.cpf||p.cliente||'')+'|'+(p.pedidoId||'');html+='<tr><td>'+esc(p.alias)+'</td><td>'+esc(p.pedidoNumero||p.pedidoId)+'</td><td>'+esc(p.data)+'</td><td>'+esc(p.cliente)+'</td><td>'+esc(p.cpf)+'</td><td><input class="small" style="width:70px" value="'+escAttr(p.idade||'')+'" id="age_'+escAttrId(key)+'"></td><td>'+fx+'</td><td>'+esc(p.valor)+'</td><td>'+esc(p.nota)+'</td><td><button class="secondary" onclick="salvarIdade(\\''+escJs(key)+'\\',\\''+escJs(p.alias||'')+'\\',\\''+escJs(p.cpf||'')+'\\',\\''+escJs(p.cliente||'')+'\\')">Salvar</button></td><td><button onclick=\'abrirNota('+JSON.stringify(p)+')\'>Abrir nota</button></td><td><button class="green" onclick=\'abrirComprovante('+JSON.stringify(p)+')\'>Imprimir</button></td></tr>';}document.getElementById('tbody').innerHTML=html;document.getElementById('sPedidos').textContent=pedidos.length;document.getElementById('sFiltrados').textContent=filtrados;}
-async function salvarIdade(key,alias,cpf,cliente){const idade=document.getElementById('age_'+escAttrId(key)).value.trim();try{await api('/api/age',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({alias,cpf,cliente,idade})});setMainStatus('Idade salva.');await carregarPedidos();}catch(e){setMainStatus('Erro ao salvar idade: '+e.message);}}
-async function abrirNota(p){try{const r=await api('/api/order/'+encodeURIComponent(p.alias)+'/'+encodeURIComponent(p.pedidoId||''));const d=r.detail||{};document.getElementById('notaBox').innerHTML='<div class="noteGrid">'+itemBox('Loja',d.alias||p.alias||'-')+itemBox('Pedido',d.pedido||p.pedidoNumero||p.pedidoId||'-')+itemBox('Cliente',d.cliente||p.cliente||'-')+itemBox('CPF',d.cpf||p.cpf||'-')+itemBox('Endereço',d.endereco||'-')+itemBox('Item',d.itemDescricao||'Produto não encontrado')+'</div>'+(d.rawHint?'<div class="muted" style="margin-top:10px;">'+safe(d.rawHint)+'</div>':'');}catch(e){setMainStatus('Erro ao abrir nota: '+e.message);}}
-async function abrirComprovante(p){try{const r=await api('/api/order/'+encodeURIComponent(p.alias)+'/'+encodeURIComponent(p.pedidoId||''));const d=r.detail||{};const merged={alias:d.alias||p.alias||'-',pedido:d.pedido||p.pedidoNumero||p.pedidoId||'-',data:d.data||p.data||'-',cliente:d.cliente||p.cliente||'-',cpf:d.cpf||p.cpf||'-',nota:d.nota||p.nota||'-',valor:d.valor||p.valor||'0',subtotal:d.subtotal||d.valor||p.valor||'0',total:d.total||d.valor||p.valor||'0',endereco:d.endereco||'-',itemDescricao:d.itemDescricao||'Produto não encontrado',rawHint:d.rawHint||''};const w=window.open('','_blank','width=820,height=900');const html='<!DOCTYPE html><html><head><meta charset="utf-8"><title>Comprovante</title><style>body{font-family:Arial,sans-serif;background:#fff;color:#000;margin:0;padding:20px}.wrap{max-width:760px;margin:0 auto}.head{display:flex;justify-content:space-between}.logo{font-size:34px;font-family:Georgia,serif;font-style:italic;margin-top:26px}.line{border-top:2px solid #000;margin:16px 0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:14px}.row{margin-bottom:4px}table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px}th,td{border:1px solid #000;padding:6px;text-align:left}th{background:#f2f2f2}.totalBox{margin-top:14px;display:flex;justify-content:flex-end}.totalInner{width:260px}.totalInner div{display:flex;justify-content:space-between;padding:4px 0;font-size:15px}.center{margin-top:24px;text-align:center;font-size:14px}.printBar{margin-bottom:16px}@media print {.printBar{display:none}}</style></head><body><div class="wrap"><div class="printBar"><button onclick="window.print()">Imprimir</button></div><div class="head"><div class="logo">Trevizio</div><div>'+safe(merged.alias)+'</div></div><div class="line"></div><div class="grid"><div><div class="row"><strong>Pedido:</strong> '+safe(merged.pedido)+'</div><div class="row"><strong>Data:</strong> '+safe(merged.data)+'</div><div class="row"><strong>Cliente:</strong> '+safe(merged.cliente)+'</div><div class="row"><strong>CPF/CNPJ:</strong> '+safe(merged.cpf)+'</div><div class="row"><strong>Endereço:</strong> '+safe(merged.endereco)+'</div></div><div><div class="row"><strong>Nota:</strong> '+safe(merged.nota)+'</div><div class="row"><strong>Loja:</strong> '+safe(merged.alias)+'</div></div></div><table><thead><tr><th>Item</th><th>Qtde</th><th>Valor</th><th>Total</th></tr></thead><tbody><tr><td>'+safe(merged.itemDescricao)+'</td><td>1</td><td>'+safe(money(merged.total))+'</td><td>'+safe(money(merged.total))+'</td></tr></tbody></table><div class="totalBox"><div class="totalInner"><div><span>Sub total:</span><strong>'+safe(money(merged.subtotal))+'</strong></div><div><span>Total:</span><strong>'+safe(money(merged.total))+'</strong></div></div></div><div class="center"><div>Obrigado pela preferência</div></div>'+(merged.rawHint?'<div style="color:#666;font-size:12px">Obs.: '+safe(merged.rawHint)+'</div>':'')+'</div></body></html>';w.document.open();w.document.write(html);w.document.close();}catch(e){setMainStatus('Erro ao abrir comprovante: '+e.message);}}
-function money(v){let s=String(v==null?'':v).trim();if(!s) return 'R$ 0,00';s=s.replace(/[^\d,.-]/g,'');if(s.indexOf(',')>=0) s=s.replace(/\./g,'').replace(',','.');let n=Number(s);if(isNaN(n)) return String(v||'-');return n.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
-function itemBox(t,v){return '<div class="noteItem"><div class="muted" style="margin-bottom:4px;">'+safe(t)+'</div><div>'+safe(v)+'</div></div>';}
-function safe(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function esc(v){return safe(v)} function escAttr(v){return safe(v)} function escJs(v){return String(v).replace(/\\/g,'\\\\').replace(/'/g,"\\'")} function escAttrId(v){return String(v).replace(/[^a-zA-Z0-9_]/g,'_')}
+const $ = (id)=>document.getElementById(id);
+const esc = (v)=>String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const idSafe = (v)=>String(v).replace(/[^a-zA-Z0-9_]/g,'_');
+
+function setLoginStatus(msg){ $('loginStatus').textContent = msg; }
+function setMainStatus(msg){ $('mainStatus').textContent = msg; }
+function setAdminStatus(msg){ $('adminStatus').textContent = msg; }
+
+async function api(path, opts){
+  const r = await fetch(path, opts || {});
+  const t = await r.text();
+  let d = {};
+  try { d = t ? JSON.parse(t) : {}; } catch { d = { raw: t }; }
+  if (!r.ok) throw new Error(d.error || d.raw || r.statusText);
+  return d;
+}
+
+function carregarDemo(){
+  $('loginUser').value = 'admin';
+  $('loginPass').value = '123456';
+  setLoginStatus('Login demo preenchido.');
+}
+async function fazerLogin(){
+  try{
+    const r = await api('/api/login-access', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ user: $('loginUser').value.trim(), senha: $('loginPass').value })
+    });
+    abrirApp(r.session);
+  }catch(e){ setLoginStatus('Erro no login: ' + e.message); }
+}
+function abrirApp(session){
+  currentSession = session;
+  $('loginView').classList.add('hidden');
+  $('appView').classList.remove('hidden');
+  atualizarPainel(session);
+  carregarUsuarios();
+  carregarContas();
+  carregarPedidos();
+  if (pollTimer) clearInterval(pollTimer);
+  pollTimer = setInterval(validarSessao, 20000);
+}
+function atualizarPainel(session){
+  $('sUser').textContent = session.user || '-';
+  $('sRole').textContent = session.role || '-';
+  $('badgeRole').textContent = session.role || '-';
+  $('badgeStatus').textContent = session.status || '-';
+  $('badgeStatus').className = 'badge ' + (session.status === 'ativo' ? 'ok' : 'warn');
+  const isAdmin = session.role === 'admin';
+  $('adminUsersCard').style.display = isAdmin ? 'block' : 'none';
+  $('adminAccountsCard').style.display = isAdmin ? 'block' : 'none';
+}
+async function validarSessao(){
+  try{
+    const r = await api('/api/session-status-access');
+    currentSession = r.session;
+    atualizarPainel(r.session);
+    if (r.session.status !== 'ativo'){ alert('Seu acesso foi bloqueado.'); await logout(); }
+  }catch(e){ alert('Sessão encerrada: ' + e.message); await logout(); }
+}
+async function logout(){
+  try { await api('/api/logout-access', {method:'POST'}); } catch {}
+  if (pollTimer) clearInterval(pollTimer);
+  $('appView').classList.add('hidden');
+  $('loginView').classList.remove('hidden');
+  setLoginStatus('Sessão encerrada.');
+}
+
+async function carregarUsuarios(){
+  try{
+    const r = await api('/api/users-access');
+    const isAdmin = currentSession && currentSession.role === 'admin';
+    $('usersTable').innerHTML = (r.users || []).map(u => {
+      let acoes = '-';
+      if (isAdmin){
+        acoes = `<button class="secondary" style="width:auto;margin-right:6px;" onclick="toggleStatus('${u.user}','${u.status}')">${u.status === 'ativo' ? 'Bloquear' : 'Desbloquear'}</button>
+                 <button class="secondary" style="width:auto;margin-right:6px;" onclick="trocarSenha('${u.user}')">Senha</button>
+                 ${u.user !== 'admin' ? `<button class="danger" style="width:auto;" onclick="apagarUsuario('${u.user}')">Apagar</button>` : ''}`;
+      }
+      return `<tr><td>${esc(u.user)}</td><td>${esc(u.nome)}</td><td>${esc(u.role)}</td><td>${esc(u.status)}</td><td>${acoes}</td></tr>`;
+    }).join('') || '<tr><td colspan="5">Sem usuários.</td></tr>';
+  }catch(e){ setAdminStatus('Erro ao carregar usuários: ' + e.message); }
+}
+async function criarUsuario(){
+  try{
+    await api('/api/users-access', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ user:$('newUser').value.trim(), senha:$('newPass').value, nome:$('newName').value.trim(), role:$('newRole').value })
+    });
+    setAdminStatus('Acesso criado.');
+    $('newUser').value=''; $('newPass').value=''; $('newName').value=''; $('newRole').value='colaborador';
+    carregarUsuarios();
+  }catch(e){ setAdminStatus('Erro ao criar usuário: ' + e.message); }
+}
+async function toggleStatus(user,status){
+  try{
+    await api('/api/users-access/status', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ user, status: status === 'ativo' ? 'bloqueado' : 'ativo' }) });
+    setAdminStatus('Status atualizado.');
+    carregarUsuarios();
+  }catch(e){ setAdminStatus('Erro ao mudar status: ' + e.message); }
+}
+async function trocarSenha(user){
+  const senha = prompt('Nova senha para ' + user + ':');
+  if (!senha) return;
+  try{
+    await api('/api/users-access/password', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ user, senha }) });
+    setAdminStatus('Senha atualizada.');
+  }catch(e){ setAdminStatus('Erro ao trocar senha: ' + e.message); }
+}
+async function apagarUsuario(user){
+  if (!confirm('Apagar usuário ' + user + '?')) return;
+  try{
+    await api('/api/users-access/delete', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ user }) });
+    setAdminStatus('Usuário apagado.');
+    carregarUsuarios();
+  }catch(e){ setAdminStatus('Erro ao apagar usuário: ' + e.message); }
+}
+
+async function salvarConta(){
+  try{
+    await api('/api/account', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ alias:$('alias').value.trim(), clientId:$('clientId').value.trim(), clientSecret:$('clientSecret').value }) });
+    setMainStatus('Conta salva.');
+    carregarContas();
+  }catch(e){ setMainStatus('Erro ao salvar conta: ' + e.message); }
+}
+async function conectarConta(){
+  try{
+    const alias = $('alias').value.trim();
+    if (!alias) throw new Error('Informe o apelido da loja.');
+    await salvarConta();
+    window.location.href = '/api/login-bling?alias=' + encodeURIComponent(alias);
+  }catch(e){ setMainStatus('Erro: ' + e.message); }
+}
+async function sincronizarTudo(){
+  try{
+    setMainStatus('Sincronizando todas as contas...');
+    const r = await api('/api/sync-all', { method:'POST' });
+    setMainStatus('Sincronização concluída. ' + (r.count || 0) + ' pedido(s).');
+    carregarContas(); carregarPedidos();
+  }catch(e){ setMainStatus('Erro: ' + e.message); }
+}
+async function limparDados(){
+  try{
+    await api('/api/clear-bling', { method:'POST' });
+    setMainStatus('Dados limpos.');
+    carregarContas(); carregarPedidos();
+  }catch(e){ setMainStatus('Erro: ' + e.message); }
+}
+async function carregarContas(){
+  try{
+    const r = await api('/api/accounts');
+    contas = r.accounts || [];
+    $('sContas').textContent = contas.length;
+    $('accountsBox').innerHTML = contas.map(c=>`<div class="acct"><b>${esc(c.alias)}</b>${c.connected?'<span class="badge info">conectada</span>':'<span class="badge warn">sem token</span>'}<div class="muted" style="margin-top:4px;">Client ID: ${esc(c.clientId||'')}</div></div>`).join('') || '<div class="muted">Nenhuma conta salva ainda.</div>';
+    const cur = $('fLoja').value;
+    $('fLoja').innerHTML = '<option value="TODAS">Todas</option>' + contas.map(c=>`<option value="${esc(c.alias)}">${esc(c.alias)}</option>`).join('');
+    if ([...$('fLoja').options].some(o => o.value === cur)) $('fLoja').value = cur;
+  }catch(e){ setMainStatus('Erro ao carregar contas: ' + e.message); }
+}
+function faixa(idade){
+  if (idade == null || idade === '' || isNaN(Number(idade))) return 'Sem idade';
+  const n = Number(idade);
+  if (n <= 17) return '0-17'; if (n <= 25) return '18-25'; if (n <= 35) return '26-35'; if (n <= 50) return '36-50'; return '51+';
+}
+async function carregarPedidos(){
+  try{
+    const r = await api('/api/orders');
+    pedidos = r.orders || [];
+    render();
+  }catch(e){ setMainStatus('Erro ao carregar pedidos: ' + e.message); }
+}
+function render(){
+  const lojaSel = $('fLoja').value, faixaSel = $('faixa').value, busca = $('busca').value.toLowerCase().trim();
+  let filtrados = 0;
+  $('tbody').innerHTML = pedidos.filter(p => {
+    const fx = faixa(p.idade);
+    const base = [p.alias,p.pedidoNumero||p.pedidoId,p.data,p.cliente,p.cpf,p.nota,p.valor].join(' ').toLowerCase();
+    return (lojaSel === 'TODAS' || p.alias === lojaSel) && (faixaSel === 'TODOS' || fx === faixaSel) && (!busca || base.includes(busca));
+  }).map(p => {
+    filtrados++;
+    const key = `${p.alias||''}|${p.cpf||p.cliente||''}|${p.pedidoId||''}`;
+    return `<tr>
+      <td>${esc(p.alias)}</td><td>${esc(p.pedidoNumero||p.pedidoId)}</td><td>${esc(p.data)}</td><td>${esc(p.cliente)}</td><td>${esc(p.cpf)}</td>
+      <td><input class="small" style="width:70px" value="${esc(p.idade||'')}" id="age_${idSafe(key)}"></td>
+      <td>${esc(faixa(p.idade))}</td><td>${esc(p.valor)}</td><td>${esc(p.nota)}</td>
+      <td><button class="secondary" type="button" onclick="salvarIdade('${encodeURIComponent(key)}','${encodeURIComponent(p.alias||'')}','${encodeURIComponent(p.cpf||'')}','${encodeURIComponent(p.cliente||'')}')">Salvar</button></td>
+      <td><button type="button" onclick="abrirNota(${JSON.stringify(p).replace(/"/g,'&quot;')})">Abrir nota</button></td>
+      <td><button class="green" type="button" onclick="abrirComprovante(${JSON.stringify(p).replace(/"/g,'&quot;')})">Imprimir</button></td>
+    </tr>`;
+  }).join('');
+  $('sPedidos').textContent = pedidos.length;
+  $('sFiltrados').textContent = filtrados;
+}
+async function salvarIdade(keyEnc, aliasEnc, cpfEnc, clienteEnc){
+  const key = decodeURIComponent(keyEnc), alias = decodeURIComponent(aliasEnc), cpf = decodeURIComponent(cpfEnc), cliente = decodeURIComponent(clienteEnc);
+  const idade = $('age_' + idSafe(key)).value.trim();
+  try{
+    await api('/api/age', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ alias, cpf, cliente, idade }) });
+    setMainStatus('Idade salva.');
+    carregarPedidos();
+  }catch(e){ setMainStatus('Erro ao salvar idade: ' + e.message); }
+}
+async function abrirNota(p){
+  try{
+    const r = await api('/api/order/' + encodeURIComponent(p.alias) + '/' + encodeURIComponent(p.pedidoId || ''));
+    const d = r.detail || {};
+    $('notaBox').innerHTML = `<div class="noteGrid">
+      <div class="noteItem"><div class="muted">Loja</div><div>${esc(d.alias||p.alias||'-')}</div></div>
+      <div class="noteItem"><div class="muted">Pedido</div><div>${esc(d.pedido||p.pedidoNumero||p.pedidoId||'-')}</div></div>
+      <div class="noteItem"><div class="muted">Cliente</div><div>${esc(d.cliente||p.cliente||'-')}</div></div>
+      <div class="noteItem"><div class="muted">CPF</div><div>${esc(d.cpf||p.cpf||'-')}</div></div>
+      <div class="noteItem"><div class="muted">Endereço</div><div>${esc(d.endereco||'-')}</div></div>
+      <div class="noteItem"><div class="muted">Item</div><div>${esc(d.itemDescricao||'Produto não encontrado')}</div></div>
+    </div>`;
+  }catch(e){ setMainStatus('Erro ao abrir nota: ' + e.message); }
+}
+async function abrirComprovante(p){
+  try{
+    const r = await api('/api/order/' + encodeURIComponent(p.alias) + '/' + encodeURIComponent(p.pedidoId || ''));
+    const d = r.detail || {};
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Comprovante</title></head><body style="font-family:Arial;padding:20px"><h2>Trevizio</h2><p><b>Pedido:</b> ${esc(d.pedido||p.pedidoNumero||p.pedidoId||'-')}</p><p><b>Cliente:</b> ${esc(d.cliente||p.cliente||'-')}</p><p><b>CPF/CNPJ:</b> ${esc(d.cpf||p.cpf||'-')}</p><p><b>Endereço:</b> ${esc(d.endereco||'-')}</p><p><b>Item:</b> ${esc(d.itemDescricao||'Produto não encontrado')}</p><p><b>Total:</b> ${esc(d.total||d.valor||p.valor||'-')}</p><button onclick="window.print()">Imprimir</button></body></html>`;
+    const w = window.open('', '_blank');
+    w.document.write(html); w.document.close();
+  }catch(e){ setMainStatus('Erro ao abrir comprovante: ' + e.message); }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  $('btnLogin').addEventListener('click', fazerLogin);
+  $('btnDemo').addEventListener('click', carregarDemo);
+  $('btnValidar').addEventListener('click', validarSessao);
+  $('btnLogout').addEventListener('click', logout);
+  $('btnCriar').addEventListener('click', criarUsuario);
+  $('btnLimparForm').addEventListener('click', () => { $('newUser').value=''; $('newPass').value=''; $('newName').value=''; $('newRole').value='colaborador'; });
+  $('btnSalvarConta').addEventListener('click', salvarConta);
+  $('btnConectarConta').addEventListener('click', conectarConta);
+  $('btnSync').addEventListener('click', sincronizarTudo);
+  $('btnLimparDados').addEventListener('click', limparDados);
+  $('fLoja').addEventListener('change', render);
+  $('faixa').addEventListener('change', render);
+  $('busca').addEventListener('input', render);
+  $('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') fazerLogin(); });
+});
 </script>
 </body></html>
