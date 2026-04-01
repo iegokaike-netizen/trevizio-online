@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: trevizio-online
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: BASE_URL
+        value: https://SEU-SITE-AQUI.onrender.com

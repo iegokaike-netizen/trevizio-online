@@ -1,0 +1,16 @@
+[
+  {
+    "user": "admin",
+    "senha": "123456",
+    "status": "ativo",
+    "nome": "Administrador",
+    "role": "admin"
+  },
+  {
+    "user": "colab1",
+    "senha": "123456",
+    "status": "ativo",
+    "nome": "Colaborador 1",
+    "role": "colaborador"
+  }
+]
