@@ -145,7 +145,7 @@ function atualizarPainel(session){
   $('badgeRole').textContent = session.role || '-';
   $('badgeStatus').textContent = session.status || '-';
   $('badgeStatus').className = 'badge ' + (session.status === 'ativo' ? 'ok' : 'warn');
-  const isAdmin = session.role === 'admin';
+  const isAdmin = session.role && session.role.toLowerCase() === 'admin';
   $('adminUsersCard').style.display = isAdmin ? 'block' : 'none';
   $('adminAccountsCard').style.display = isAdmin ? 'block' : 'none';
 }
