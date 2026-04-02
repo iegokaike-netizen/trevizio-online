@@ -1,1 +1,1 @@
-Versão v4 revisada completa.
+Versão v4 revisada completa funcional
