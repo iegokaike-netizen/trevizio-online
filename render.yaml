@@ -9,4 +9,4 @@ services:
       - key: SESSION_SECRET
         generateValue: true
       - key: BASE_URL
-        value: https://SEU-SITE-AQUI.onrender.com
+        value: https://trevizio-online.onrender.com
