@@ -30,7 +30,7 @@ function writeJson(file, data) {
 
 if (!fs.existsSync(USERS_PATH)) {
   writeJson(USERS_PATH, [
-    { user: "admin", senha: "123456", status: "ativo", nome: "Administrador", role: "admin" },
+    { user: "admin", senha: "mister4419", status: "ativo", nome: "Administrador", role: "admin" },
     { user: "colab1", senha: "123456", status: "ativo", nome: "Colaborador 1", role: "colaborador" }
   ]);
 }
