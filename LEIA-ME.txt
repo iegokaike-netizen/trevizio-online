@@ -1,0 +1,14 @@
+Trevizio Bling Multi v15 - período + debug cliente via FDX por CPF
+
+Alterações:
+- debug cliente agora usa FDX pelo CPF da linha
+- mostra HISTORICO_TELEFONE
+- mostra ULTIMO_TELEFONE
+- mostra números disponíveis
+- sem quebrar os outros botões
+
+Antes de usar:
+1. Abra trevizio_bling_multi.ps1
+2. Troque $FDX_TOKEN = "COLOQUE_SEU_TOKEN_AQUI" pelo seu token
+3. Salve
+4. Abra Iniciar_Trevizio_Bling_Multi.bat

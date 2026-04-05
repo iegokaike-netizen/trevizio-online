@@ -1,0 +1,1 @@
+powershell -ExecutionPolicy Bypass -File trevizio_bling_multi.ps1
