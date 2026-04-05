@@ -1,1 +1,1 @@
-Versão v4 revisada completa funcional
+Versão v4 revisada completa funcional puxando tudo
