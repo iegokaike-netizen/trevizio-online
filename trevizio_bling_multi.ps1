@@ -93,13 +93,26 @@ function BuscarIdadeCPF($cpf) {
 $FDX_TOKEN = "499490c3b21042fe891dafb2c067ef9d"
 
 Write-Host "Trevizio Bling Multi iniciando..." -ForegroundColor Cyan
-Write-Host "Servidor rodando em http://localhost:8765" -ForegroundColor Green
 
 $ErrorActionPreference = "Stop"
-$port = 8765
 $baseDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$dataDir = Join-Path $env:APPDATA "TrevizioBlingMulti"
-if (!(Test-Path $dataDir)) { New-Item -ItemType Directory -Path $dataDir | Out-Null }
+$port = if($env:PORT){ [int]$env:PORT } else { 8765 }
+$hostName = if($env:RENDER -or $env:RENDER_EXTERNAL_URL){ "0.0.0.0" } else { "localhost" }
+$publicBaseUrl = if($env:PUBLIC_BASE_URL){ $env:PUBLIC_BASE_URL.TrimEnd("/") } elseif($env:RENDER_EXTERNAL_URL){ $env:RENDER_EXTERNAL_URL.TrimEnd("/") } else { "http://localhost:$port" }
+
+if($env:DATA_DIR){
+    $dataDir = $env:DATA_DIR
+}
+elseif($env:APPDATA){
+    $dataDir = Join-Path $env:APPDATA "TrevizioBlingMulti"
+}
+else {
+    $dataDir = Join-Path $baseDir "data"
+}
+
+if (!(Test-Path $dataDir)) { New-Item -ItemType Directory -Path $dataDir -Force | Out-Null }
+
+Write-Host ("Servidor rodando em {0}" -f $publicBaseUrl) -ForegroundColor Green
 $accountsPath = Join-Path $dataDir "accounts.json"
 $ordersPath   = Join-Path $dataDir "orders.json"
 $agesPath     = Join-Path $dataDir "ages.json"
@@ -108,7 +121,7 @@ $pendingPath  = Join-Path $dataDir "pending.json"
 
 
 function Read-JsonFile($path, $defaultObj) {
-    if (Test-Path $path) { try { return (Get-Content $path -Raw | ConvertFrom-Json) } catch { return $defaultObj } }
+    if (Test-Path $path) { try { return (((Get-Content $path) -join "`n") | ConvertFrom-Json) } catch { return $defaultObj } }
     return $defaultObj
 }
 function Write-JsonFile($path, $obj) { $obj | ConvertTo-Json -Depth 60 | Set-Content -Encoding UTF8 $path }
@@ -170,7 +183,7 @@ function Upsert-Account($alias, $clientId, $clientSecret) {
             alias = $alias
             clientId = $clientId
             clientSecret = $clientSecret
-            redirectUri = "http://localhost:8765/callback"
+            redirectUri = "$publicBaseUrl/callback"
             access_token = ""
             refresh_token = ""
             expires_at = ""
@@ -625,9 +638,9 @@ function Get-OrderDetail($alias, $pedidoId) {
 }
 
 $listener = New-Object System.Net.HttpListener
-$listener.Prefixes.Add("http://localhost:$port/")
+$listener.Prefixes.Add("http://*:$port/")
 $listener.Start()
-Start-Process "http://localhost:$port/"
+if(-not ($env:RENDER -or $env:RENDER_EXTERNAL_URL) -and $IsWindows){ Start-Process $publicBaseUrl }
 
 try {
     while($listener.IsListening){
@@ -636,7 +649,7 @@ try {
         $path = $req.Url.AbsolutePath
         try {
             if($path -eq "/"){
-                $html = Get-Content (Join-Path $baseDir "index.html") -Raw
+                $html = (Get-Content (Join-Path $baseDir "index.html")) -join "`n"
                 Send-Text $ctx $html "text/html; charset=utf-8"
                 continue
             }
@@ -660,7 +673,7 @@ try {
                 if(-not $a){ throw "Conta não encontrada." }
                 $pending = [pscustomobject]@{ alias=$alias; state=[guid]::NewGuid().ToString("N") }
                 Write-JsonFile $pendingPath $pending
-                $redir = [System.Uri]::EscapeDataString("http://localhost:8765/callback")
+                $redir = [System.Uri]::EscapeDataString("$publicBaseUrl/callback")
                 $loc = "https://www.bling.com.br/Api/v3/oauth/authorize?response_type=code&client_id=$($a.clientId)&state=$($pending.state)&redirect_uri=$redir"
                 $ctx.Response.StatusCode = 302
                 $ctx.Response.RedirectLocation = $loc
