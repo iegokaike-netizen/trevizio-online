@@ -1,0 +1,34 @@
+Trevizio Bling Multi v15 - pronto para local e Render
+
+O que foi corrigido:
+- removido erro do PowerShell antigo com Get-Content -Raw
+- ajustado para rodar online no Render usando a porta da plataforma
+- callback do Bling agora usa a URL pública do Render
+- leitura do index.html corrigida sem quebrar no servidor
+
+Arquivos novos para subir no Render:
+- Dockerfile
+- render.yaml
+
+Como usar local:
+1. Abra trevizio_bling_multi.ps1
+2. Confira o valor de $FDX_TOKEN
+3. Abra Iniciar_Trevizio_Bling_Multi.bat
+
+Como subir no Render:
+1. Envie essa pasta para um repositório no GitHub
+2. No Render, crie um Web Service usando esse repositório
+3. O Render vai detectar o Dockerfile
+4. Depois que subir, copie a URL pública do serviço
+5. No painel do Bling, configure o redirect URI exatamente assim:
+   https://SEU-SERVICO.onrender.com/callback
+6. Abra a URL do Render no navegador
+
+Observação importante:
+- no Render, os dados ficam em /app/data
+- se quiser forçar uma URL pública manualmente, crie a variável PUBLIC_BASE_URL
+
+
+LOGIN PADRÃO:
+Admin: usuario admin | senha mister4419
+Colaborador: usuario colaborador | senha colaborador
