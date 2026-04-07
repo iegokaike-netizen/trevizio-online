@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Trevizio Bling Multi</title>
+<style>
+* { box-sizing: border-box; font-family: Segoe UI, Arial, sans-serif; }
+body { margin: 0; background:#0b1220; color:#e8f0ff; }
+.top { padding:18px 22px; border-bottom:1px solid #22395a; background:#10284d; }
+.title { font-size:30px; font-weight:700; }
+.sub { color:#aac3ea; margin-top:4px; font-size:13px; }
+.wrap { padding:20px; }
+.row { display:grid; grid-template-columns: 390px 1fr; gap:18px; }
+.card { background:#101a2d; border:1px solid #1e3353; border-radius:16px; padding:16px; margin-bottom:18px; }
+h3 { margin:0 0 12px 0; font-size:18px; }
+label { display:block; font-size:13px; color:#cfe0ff; margin-bottom:6px; }
+input, select, button { width:100%; padding:10px 12px; border-radius:10px; border:1px solid #28466f; background:#0c1423; color:#fff; }
+button { background:#2168ff; border:none; cursor:pointer; font-weight:700; }
+button.secondary { background:#173153; border:1px solid #28466f; }
+button.danger { background:#be123c; }
+button.green { background:#16a34a; }
+.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.status { padding:10px 12px; border-radius:10px; background:#0d2342; color:#dcecff; font-size:12px; margin-top:10px; white-space:pre-wrap; }
+.muted { color:#9fb5d6; font-size:12px; line-height:1.5; }
+.stats { display:grid; grid-template-columns: repeat(5, 1fr); gap:12px; margin-bottom:16px; }
+.stat { background:#101a2d; border:1px solid #1e3353; border-radius:16px; padding:14px; }
+.stat .n { font-size:24px; font-weight:700; margin-top:6px; }
+.tablewrap { border:1px solid #1e3353; border-radius:14px; max-height:560px; overflow:auto; }
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th, td { text-align:left; padding:10px 8px; border-bottom:1px solid #1b2d48; vertical-align:top; }
+th { position:sticky; top:0; background:#101a2d; color:#9fb5d6; }
+.small { font-size:12px; }
+.noteBox { background:#0c1423; border:1px solid #28466f; border-radius:14px; padding:14px; min-height:160px; }
+.noteGrid { display:grid; grid-template-columns: repeat(2, 1fr); gap:12px; margin-bottom:12px; }
+.noteItem { background:#101a2d; border:1px solid #1e3353; border-radius:12px; padding:10px; }
+.badge { display:inline-block; padding:2px 8px; border-radius:999px; background:#16335c; font-size:11px; margin-left:6px; }
+.acct { padding:10px; border:1px solid #28466f; border-radius:12px; margin-bottom:8px; background:#0c1423; }
+
+.loginOverlay{position:fixed;inset:0;background:rgba(3,8,18,.78);display:flex;align-items:center;justify-content:center;z-index:9999}
+.loginCard{width:min(92vw,460px);background:#0f1d35;border:1px solid #33548a;border-radius:18px;padding:18px;box-shadow:0 20px 70px rgba(0,0,0,.45)}
+.loginTitle{font-size:20px;font-weight:700;margin-bottom:6px}
+.loginSub{color:#aac3ea;margin-bottom:14px;font-size:13px;line-height:1.5}
+.hidden{display:none!important}
+.roleBadge{display:inline-block;padding:3px 8px;border-radius:999px;background:#173153;border:1px solid #28466f;font-size:11px;margin-left:8px}
+.topActions{margin-top:10px}
+.topActions button{width:auto;display:inline-block;padding:8px 12px}
+
+
+.userGrid{display:grid;grid-template-columns:1.1fr .8fr .9fr auto auto auto;gap:8px;align-items:center}
+.userGrid.header{font-size:12px;color:#9fb5d6;margin-bottom:8px}
+.userRow{padding:10px;border:1px solid #28466f;border-radius:12px;background:#0c1423;margin-bottom:8px}
+.userMuted{color:#9fb5d6;font-size:12px}
+.userToolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.userToolbar button{width:auto}
+.userForm input,.userForm select{margin-bottom:8px}
+.userPill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;border:1px solid #28466f;background:#16335c}
+.userPill.blocked{background:#4a1222;border-color:#8b1e3f}
+.modalBg{position:fixed;inset:0;background:rgba(3,8,18,.78);display:none;align-items:center;justify-content:center;z-index:99999}
+.modalCard{width:min(92vw,520px);background:#0f1d35;border:1px solid #33548a;border-radius:18px;padding:18px;box-shadow:0 20px 70px rgba(0,0,0,.45)}
+.flexBetween{display:flex;justify-content:space-between;align-items:center;gap:10px}
+
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="title">Trevizio Bling Multi</div>
+  <div class="sub">Versão completa teste com múltiplas lojas Bling na mesma lista <span id="userRoleBadge" class="roleBadge hidden"></span></div>
+<div class="topActions"><button id="logoutBtn" class="secondary hidden" onclick="logout()">Sair</button></div>
+</div>
+
+<div id="loginOverlay" class="loginOverlay">
+  <div class="loginCard">
+    <div class="loginTitle">Entrar no sistema</div>
+    <div class="loginSub">Admin tem acesso total. Colaborador usa o sistema normal e continua com o botão de debug liberado.</div>
+    <label>Usuário</label>
+    <input id="loginUsuario" placeholder="admin ou colaborador" onkeydown="if(event.key==='Enter'){fazerLogin()}">
+    <label style="margin-top:10px;">Senha</label>
+    <input id="loginSenha" type="password" placeholder="Digite a senha" onkeydown="if(event.key==='Enter'){fazerLogin()}">
+    <button style="margin-top:14px;" onclick="fazerLogin()">Entrar</button>
+    <div class="status" id="loginStatus" style="margin-top:12px;">Use seu usuário e senha para continuar.</div>
+  </div>
+</div>
+
+<div class="wrap" id="appWrap">
+  <div class="stats">
+    <div class="stat"><div>Total de pedidos</div><div class="n" id="sPedidos">0</div></div>
+    <div class="stat"><div>Total de clientes</div><div class="n" id="sClientes">0</div></div>
+    <div class="stat"><div>Contas conectadas</div><div class="n" id="sContas">0</div></div>
+    <div class="stat"><div>Filtro loja</div><div class="n" id="sLoja">Todas</div></div>
+    <div class="stat"><div>Filtrados</div><div class="n" id="sFiltrados">0</div></div>
+  </div>
+
+  <div class="row">
+    <div>
+      <div class="card" id="adminCardConta">
+        <h3>Adicionar conta Bling</h3>
+        <label>Apelido da loja</label>
+        <input id="alias" placeholder="Ex: Loja 1 / Bling Matriz">
+        <label style="margin-top:10px;">Client ID</label>
+        <input id="clientId" value="6b14b951dd183f8524b6fe8d1b90228be2283f7a">
+        <label style="margin-top:10px;">Client Secret</label>
+        <input id="clientSecret" type="password" placeholder="Digite aqui só no seu PC">
+        <div class="grid2" style="margin-top:10px;">
+          <button onclick="salvarConta()">Salvar conta</button>
+          <button class="secondary" onclick="conectarConta()">Conectar conta</button>
+        </div>
+        <div class="grid2" style="margin-top:10px;">
+          <button class="green" onclick="sincronizarTudo()">Sincronizar todas</button>
+          <button class="danger" onclick="limparSessao()">Limpar tudo</button>
+        </div>
+        <div class="status" id="status">App pronto para uso local ou online no Render</div>
+        <div class="muted" style="margin-top:10px;">Cada loja usa sua própria autorização OAuth e seus próprios tokens.</div>
+      </div>
+
+      <div class="card" id="adminCardContas">
+        <h3>Contas conectadas</h3>
+        <div id="accountsBox" class="muted">Nenhuma conta salva ainda.</div>
+      </div>
+
+      <div class="card hidden" id="adminUsersCard">
+        <div class="flexBetween"><h3 style="margin:0">Gerenciar usuários</h3><span class="userMuted">Somente admin</span></div>
+        <div class="userForm" style="margin-top:12px;">
+          <input id="novoUsuarioNome" placeholder="Nome do usuário">
+          <input id="novoUsuarioLogin" placeholder="Login do usuário">
+          <input id="novoUsuarioSenha" placeholder="Senha inicial">
+          <select id="novoUsuarioTipo">
+            <option value="colaborador">Colaborador</option>
+            <option value="admin">Admin</option>
+          </select>
+          <button onclick="adicionarUsuario()">Adicionar usuário</button>
+        </div>
+        <div class="status" id="userStatus" style="margin-top:12px;">Admin pode criar, editar senha, bloquear e excluir usuários.</div>
+        <div id="usersList" style="margin-top:12px;"><div class="muted">Carregando usuários...</div></div>
+      </div>
+
+      <div class="card">
+        <h3>Filtros</h3>
+        <label>Loja</label>
+        <select id="fLoja" onchange="render()"><option value="TODAS">Todas</option></select>
+        <label style="margin-top:10px;">Faixa etária</label>
+        <select id="faixa" onchange="render()">
+          <option value="TODOS">Todos</option>
+          <option value="0-17">0-17</option>
+          <option value="18-25">18-25</option>
+          <option value="26-35">26-35</option>
+          <option value="36-50">36-50</option>
+          <option value="51+">51+</option>
+          <option value="Sem idade">Sem idade</option>
+        </select>
+        <label style="margin-top:10px;">Buscar</label>
+        <input id="busca" onkeyup="render()" placeholder="Nome, CPF, pedido ou nota">
+      </div>
+
+      <div class="card">
+        <h3>Buscar idades por período</h3>
+        <label>Atalho</label>
+        <select id="periodPreset" onchange="aplicarPeriodoRapido()">
+          <option value="">Escolher...</option>
+          <option value="3">Últimos 3 dias</option>
+          <option value="7">Últimos 7 dias</option>
+          <option value="30">Últimos 30 dias</option>
+        </select>
+        <div class="grid2" style="margin-top:10px;">
+          <div>
+            <label>Data inicial</label>
+            <input id="dataInicio" type="date">
+          </div>
+          <div>
+            <label>Data final</label>
+            <input id="dataFim" type="date">
+          </div>
+        </div>
+        <button class="green" style="margin-top:10px;" onclick="buscarIdadesPorPeriodo()">Consultar idades do período</button>
+        <div class="muted" style="margin-top:10px;">Busca só as notas do período escolhido.</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h3>Pedidos / Clientes</h3>
+        <div class="tablewrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Loja</th>
+                <th>Pedido</th>
+                <th>Data</th>
+                <th>Cliente</th>
+                <th>CPF</th>
+                <th>Idade</th>
+                <th>Faixa</th>
+                <th>Valor</th>
+                <th>Nota</th>
+                <th>Salvar idade</th>
+                <th>Abrir nota</th>
+                <th>Comprovante</th><th>Buscar idade</th><th>Debug cliente</th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Prévia rápida</h3>
+        <div class="noteBox" id="notaBox"><div class="muted">Clique em Imprimir para abrir o comprovante.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div id="userModalBg" class="modalBg">
+  <div class="modalCard">
+    <div class="flexBetween"><div class="loginTitle" style="font-size:18px;margin:0">Editar usuário</div><button class="secondary" style="width:auto" onclick="fecharModalUsuario()">Fechar</button></div>
+    <input id="editUsuarioLogin" type="hidden">
+    <label style="margin-top:10px;">Nome</label>
+    <input id="editUsuarioNome" placeholder="Nome">
+    <label style="margin-top:10px;">Tipo</label>
+    <select id="editUsuarioTipo">
+      <option value="colaborador">Colaborador</option>
+      <option value="admin">Admin</option>
+    </select>
+    <label style="margin-top:10px;">Nova senha</label>
+    <input id="editUsuarioSenha" placeholder="Deixe em branco para manter a atual">
+    <label style="margin-top:10px;">Status</label>
+    <select id="editUsuarioBloqueado">
+      <option value="false">Ativo</option>
+      <option value="true">Bloqueado</option>
+    </select>
+    <div class="userToolbar" style="justify-content:flex-end">
+      <button class="secondary" onclick="fecharModalUsuario()">Cancelar</button>
+      <button onclick="salvarEdicaoUsuario()">Salvar alterações</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let pedidos = [];
+let contas = [];
+
+const STORAGE_KEY = 'trevizio_login';
+let sessaoAtual = null;
+let usuariosCache = [];
+
+function getSessao(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  }catch(e){ return null; }
+}
+function salvarSessao(sessao){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(sessao)); }catch(e){}
+  sessaoAtual = sessao;
+}
+function limparSessaoLocal(){
+  try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
+  sessaoAtual = null;
+}
+function setUserStatus(msg){
+  const el = document.getElementById('userStatus');
+  if(el) el.textContent = msg;
+}
+function aplicarPermissoes(){
+  sessaoAtual = getSessao();
+  const overlay = document.getElementById('loginOverlay');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const badge = document.getElementById('userRoleBadge');
+  const adminOnlyIds = ['adminCardConta','adminCardContas','adminUsersCard'];
+
+  if(!sessaoAtual || !sessaoAtual.token){
+    overlay.classList.remove('hidden');
+    logoutBtn.classList.add('hidden');
+    badge.classList.add('hidden');
+    adminOnlyIds.forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.classList.add('hidden');
+    });
+    return false;
+  }
+
+  overlay.classList.add('hidden');
+  logoutBtn.classList.remove('hidden');
+  badge.classList.remove('hidden');
+  badge.textContent = (sessaoAtual.tipo === 'admin' ? 'Admin' : 'Colaborador') + ' • ' + (sessaoAtual.nome || sessaoAtual.usuario || '');
+
+  const isAdmin = sessaoAtual.tipo === 'admin';
+  adminOnlyIds.forEach(id => {
+    const el = document.getElementById(id);
+    if(!el) return;
+    if(isAdmin) el.classList.remove('hidden');
+    else el.classList.add('hidden');
+  });
+
+  return true;
+}
+async function validarSessao(){
+  const s = getSessao();
+  if(!s || !s.token) return false;
+  try{
+    const r = await api('/api/auth/me');
+    salvarSessao({ token:s.token, usuario:r.user.usuario, tipo:r.user.tipo, nome:r.user.nome });
+    return true;
+  }catch(e){
+    limparSessaoLocal();
+    return false;
+  }
+}
+async function fazerLogin(){
+  const usuario = (document.getElementById('loginUsuario').value || '').trim();
+  const senha = document.getElementById('loginSenha').value || '';
+  const status = document.getElementById('loginStatus');
+  if(!usuario || !senha){ status.textContent = 'Informe usuário e senha.'; return; }
+  status.textContent = 'Entrando...';
+  try{
+    const r = await api('/api/auth/login', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ usuario, senha })}, false);
+    salvarSessao({ token:r.session.token, usuario:r.user.usuario, tipo:r.user.tipo, nome:r.user.nome });
+    aplicarPermissoes();
+    await carregarContas();
+    await carregarPedidos();
+    if(sessaoAtual.tipo === 'admin') await carregarUsuarios();
+    status.textContent = 'Entrando...';
+  }catch(e){
+    status.textContent = e.message || 'Usuário ou senha inválidos.';
+  }
+}
+async function logout(){
+  try{ await api('/api/auth/logout', {method:'POST'}); }catch(e){}
+  limparSessaoLocal();
+  document.getElementById('loginUsuario').value = '';
+  document.getElementById('loginSenha').value = '';
+  document.getElementById('loginStatus').textContent = 'Use seu usuário e senha para continuar.';
+  aplicarPermissoes();
+}
+function renderUsers(){
+  const box = document.getElementById('usersList');
+  if(!box) return;
+  if(!usuariosCache.length){ box.innerHTML = '<div class="muted">Nenhum usuário cadastrado.</div>'; return; }
+  let h = '<div class="userGrid header"><div>Usuário</div><div>Nome</div><div>Tipo</div><div>Status</div><div>Ações</div><div></div></div>';
+  for(const u of usuariosCache){
+    const bloqueado = !!u.bloqueado;
+    h += '<div class="userRow userGrid">'
+      + '<div><div><b>' + safe(u.usuario || '-') + '</b></div><div class="userMuted">login</div></div>'
+      + '<div>' + safe(u.nome || '-') + '</div>'
+      + '<div><span class="userPill">' + safe(u.tipo || '-') + '</span></div>'
+      + '<div><span class="userPill ' + (bloqueado ? 'blocked' : '') + '">' + (bloqueado ? 'Bloqueado' : 'Ativo') + '</span></div>'
+      + '<div class="userToolbar">'
+      + '<button class="secondary" onclick="abrirEdicaoUsuario(' + encodeURIComponent(JSON.stringify(u)) + ')">Editar</button>'
+      + '<button class="secondary" onclick="alternarBloqueioUsuario('' + escJs(u.usuario || '') + '',' + (bloqueado ? 'false' : 'true') + ')">' + (bloqueado ? 'Desbloquear' : 'Bloquear') + '</button>'
+      + '</div>'
+      + '<div class="userToolbar">' + ((u.usuario === 'admin') ? '<span class="userMuted">principal</span>' : '<button class="danger" onclick="excluirUsuario('' + escJs(u.usuario || '') + '')">Excluir</button>') + '</div>'
+      + '</div>';
+  }
+  box.innerHTML = h;
+}
+async function carregarUsuarios(){
+  if(!sessaoAtual || sessaoAtual.tipo !== 'admin') return;
+  try{
+    const r = await api('/api/users');
+    usuariosCache = r.users || [];
+    renderUsers();
+    setUserStatus('Usuários carregados.');
+  }catch(e){
+    setUserStatus('Erro ao carregar usuários: ' + e.message);
+  }
+}
+async function adicionarUsuario(){
+  if(!sessaoAtual || sessaoAtual.tipo !== 'admin') return;
+  const nome = (document.getElementById('novoUsuarioNome').value || '').trim();
+  const usuario = (document.getElementById('novoUsuarioLogin').value || '').trim();
+  const senha = document.getElementById('novoUsuarioSenha').value || '';
+  const tipo = document.getElementById('novoUsuarioTipo').value;
+  if(!usuario || !senha){ setUserStatus('Informe login e senha do novo usuário.'); return; }
+  try{
+    const r = await api('/api/users/add', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ nome, usuario, senha, tipo })});
+    usuariosCache = r.users || [];
+    renderUsers();
+    document.getElementById('novoUsuarioNome').value = '';
+    document.getElementById('novoUsuarioLogin').value = '';
+    document.getElementById('novoUsuarioSenha').value = '';
+    document.getElementById('novoUsuarioTipo').value = 'colaborador';
+    setUserStatus('Usuário adicionado com sucesso.');
+  }catch(e){ setUserStatus('Erro ao adicionar usuário: ' + e.message); }
+}
+function abrirEdicaoUsuario(encoded){
+  const u = JSON.parse(decodeURIComponent(encoded));
+  document.getElementById('editUsuarioLogin').value = u.usuario || '';
+  document.getElementById('editUsuarioNome').value = u.nome || '';
+  document.getElementById('editUsuarioTipo').value = u.tipo || 'colaborador';
+  document.getElementById('editUsuarioSenha').value = '';
+  document.getElementById('editUsuarioBloqueado').value = String(!!u.bloqueado);
+  document.getElementById('userModalBg').style.display = 'flex';
+}
+function fecharModalUsuario(){
+  document.getElementById('userModalBg').style.display = 'none';
+}
+async function salvarEdicaoUsuario(){
+  const usuario = document.getElementById('editUsuarioLogin').value;
+  const nome = document.getElementById('editUsuarioNome').value.trim();
+  const tipo = document.getElementById('editUsuarioTipo').value;
+  const senha = document.getElementById('editUsuarioSenha').value;
+  const bloqueado = document.getElementById('editUsuarioBloqueado').value === 'true';
+  try{
+    const r = await api('/api/users/update', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ usuario, nome, tipo, senha, bloqueado })});
+    usuariosCache = r.users || [];
+    renderUsers();
+    fecharModalUsuario();
+    setUserStatus('Usuário atualizado com sucesso.');
+  }catch(e){ setUserStatus('Erro ao atualizar usuário: ' + e.message); }
+}
+async function alternarBloqueioUsuario(usuario, bloquear){
+  const alvo = usuariosCache.find(x => x.usuario === usuario) || {};
+  try{
+    const r = await api('/api/users/update', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ usuario, nome:alvo.nome || usuario, tipo:alvo.tipo || 'colaborador', bloqueado: !!bloquear })});
+    usuariosCache = r.users || [];
+    renderUsers();
+    setUserStatus('Status do usuário atualizado.');
+  }catch(e){ setUserStatus('Erro ao alterar status: ' + e.message); }
+}
+async function excluirUsuario(usuario){
+  if(!confirm('Excluir o usuário ' + usuario + '?')) return;
+  try{
+    const r = await api('/api/users/delete', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ usuario })});
+    usuariosCache = r.users || [];
+    renderUsers();
+    setUserStatus('Usuário excluído com sucesso.');
+  }catch(e){ setUserStatus('Erro ao excluir usuário: ' + e.message); }
+}
+function setStatus(msg){ document.getElementById('status').textContent = msg; }
+async function api(path, opts, withAuth){
+  const options = Object.assign({}, opts || {});
+  const headers = Object.assign({}, options.headers || {});
+  const useAuth = withAuth !== false;
+  const sess = getSessao();
+  if(useAuth && sess && sess.token){ headers['X-Auth-Token'] = sess.token; }
+  options.headers = headers;
+  const r = await fetch(path, options);
+  const t = await r.text();
+  let d = {};
+  try { d = t ? JSON.parse(t) : {}; } catch(e) { d = { raw: t }; }
+  if (r.status === 401){
+    limparSessaoLocal();
+    aplicarPermissoes();
+  }
+  if (!r.ok) throw new Error(d.error || d.raw || r.statusText);
+  return d;
+}
+
+async function salvarConta(){
+  if(!sessaoAtual || sessaoAtual.tipo !== 'admin'){ setStatus('Somente admin pode salvar conta.'); return; }
+  try{
+    await api('/api/account', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({
+      alias: document.getElementById('alias').value.trim(),
+      clientId: document.getElementById('clientId').value.trim(),
+      clientSecret: document.getElementById('clientSecret').value
+    })});
+    setStatus('Conta salva.');
+    await carregarContas();
+  }catch(e){ setStatus('Erro ao salvar conta: ' + e.message); }
+}
+
+async function conectarConta(){
+  if(!sessaoAtual || sessaoAtual.tipo !== 'admin'){ setStatus('Somente admin pode conectar conta.'); return; }
+  try{
+    const alias = document.getElementById('alias').value.trim();
+    if(!alias) throw new Error('Informe o apelido da loja.');
+    await salvarConta();
+    window.location.href = '/api/login?alias=' + encodeURIComponent(alias);
+  }catch(e){ setStatus('Erro: ' + e.message); }
+}
+
+async function sincronizarTudo(){
+  if(!sessaoAtual || sessaoAtual.tipo !== 'admin'){ setStatus('Somente admin pode sincronizar contas.'); return; }
+  try{
+    setStatus('Sincronizando todas as contas...');
+    const r = await api('/api/sync-all');
+    setStatus('Sincronização concluída. ' + (r.count||0) + ' pedido(s).');
+    await carregarPedidos();
+    await carregarContas();
+  }catch(e){ setStatus('Erro: ' + e.message); }
+}
+
+async function limparSessao(){
+  if(!sessaoAtual || sessaoAtual.tipo !== 'admin'){ setStatus('Somente admin pode limpar dados.'); return; }
+  try{
+    await api('/api/clear', {method:'POST'});
+    setStatus('Dados locais limpos.');
+    await carregarContas();
+    await carregarPedidos();
+  }catch(e){ setStatus('Erro: ' + e.message); }
+}
+
+async function carregarContas(){
+  try{
+    const r = await api('/api/accounts');
+    contas = r.accounts || [];
+    document.getElementById('sContas').textContent = contas.length;
+    let html = '';
+    for(const c of contas){
+      html += '<div class="acct"><b>' + esc(c.alias) + '</b>' + (c.connected ? '<span class="badge">conectada</span>' : '<span class="badge">sem token</span>') + '<div class="muted" style="margin-top:4px;">Client ID: ' + esc(c.clientId||'') + '</div></div>';
+    }
+    document.getElementById('accountsBox').innerHTML = html || '<div class="muted">Nenhuma conta salva ainda.</div>';
+    const f = document.getElementById('fLoja');
+    const cur = f.value;
+    f.innerHTML = '<option value="TODAS">Todas</option>' + contas.map(c => '<option value="'+escAttr(c.alias)+'">'+esc(c.alias)+'</option>').join('');
+    if ([...f.options].some(o => o.value === cur)) f.value = cur;
+  }catch(e){ setStatus('Erro ao carregar contas: ' + e.message); }
+}
+
+function faixa(idade){
+  if(idade==null || idade==='' || isNaN(Number(idade))) return 'Sem idade';
+  idade = Number(idade);
+  if(idade <= 17) return '0-17';
+  if(idade <= 25) return '18-25';
+  if(idade <= 35) return '26-35';
+  if(idade <= 50) return '36-50';
+  return '51+';
+}
+
+async function carregarPedidos(){
+  try{
+    const r = await api('/api/orders');
+    pedidos = r.orders || [];
+    render();
+  }catch(e){ setStatus('Erro ao carregar pedidos: ' + e.message); }
+}
+
+function render(){
+  const lojaSel = document.getElementById('fLoja').value;
+  const faixaSel = document.getElementById('faixa').value;
+  const busca = document.getElementById('busca').value.toLowerCase().trim();
+  let html = '', vistos = new Set(), filtrados = 0;
+  for(const p of pedidos){
+    const fx = faixa(p.idade);
+    const base = [p.alias, p.pedidoNumero||p.pedidoId, p.data, p.cliente, p.cpf, p.nota, p.valor].join(' ').toLowerCase();
+    if((lojaSel !== 'TODAS' && p.alias !== lojaSel) || (faixaSel !== 'TODOS' && fx !== faixaSel) || (busca && !base.includes(busca))) continue;
+    filtrados++;
+    vistos.add((p.alias||'') + '|' + (p.cpf||p.cliente||p.pedidoId));
+    const key = (p.alias||'') + '|' + (p.cpf||p.cliente||'') + '|' + (p.pedidoId||'');
+    html += '<tr>'
+      + '<td>' + esc(p.alias) + '</td>'
+      + '<td>' + esc(p.pedidoNumero || p.pedidoId) + '</td>'
+      + '<td>' + esc(p.data) + '</td>'
+      + '<td>' + esc(p.cliente) + '</td>'
+      + '<td>' + esc(p.cpf) + '</td>'
+      + '<td><input class="small" style="width:70px" value="' + escAttr(p.idade||'') + '" id="age_' + escAttrId(key) + '"></td>'
+      + '<td>' + fx + '</td>'
+      + '<td>' + esc(p.valor) + '</td>'
+      + '<td>' + esc(p.nota) + '</td>'
+      + '<td><button class="secondary" onclick="salvarIdade(\'' + escJs(key) + '\',\'' + escJs(p.alias||'') + '\',\'' + escJs(p.cpf||'') + '\',\'' + escJs(p.cliente||'') + '\')">Salvar</button></td>'
+      + '<td><button onclick=\'abrirNota(' + JSON.stringify(p) + ')\'>Abrir nota</button></td>'
+      + '<td><button class="green" onclick=\'abrirComprovante(' + JSON.stringify(p) + ')\'>Imprimir</button></td>'
+      + '<td><button class="secondary" onclick=\'buscarIdadeDaLinha(' + JSON.stringify(p) + ')\'>Buscar idade</button></td>'
+      + '<td><button class="secondary" onclick=\'abrirDebugCliente(' + JSON.stringify(p) + ')\'>Debug cliente</button></td>'
+      + '</tr>';
+  }
+  document.getElementById('tbody').innerHTML = html;
+  document.getElementById('sPedidos').textContent = pedidos.length;
+  document.getElementById('sClientes').textContent = vistos.size;
+  document.getElementById('sLoja').textContent = lojaSel === 'TODAS' ? 'Todas' : lojaSel;
+  document.getElementById('sFiltrados').textContent = filtrados;
+}
+
+async function salvarIdade(key, alias, cpf, cliente){
+  const idade = document.getElementById('age_' + escAttrId(key)).value.trim();
+  try{
+    await api('/api/age', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({alias, cpf, cliente, idade})});
+    setStatus('Idade salva.');
+    await carregarPedidos();
+  }catch(e){ setStatus('Erro ao salvar idade: ' + e.message); }
+}
+
+
+async function abrirNota(p){
+  try{
+    const r = await api('/api/order/' + encodeURIComponent(p.alias) + '/' + encodeURIComponent(p.pedidoId || ''));
+    const d = r.detail || {};
+    document.getElementById('notaBox').innerHTML =
+      '<div class="noteGrid">'
+      + itemBox('Loja', d.alias || p.alias || '-')
+      + itemBox('Pedido', d.pedido || p.pedidoNumero || p.pedidoId || '-')
+      + itemBox('Cliente', d.cliente || p.cliente || '-')
+      + itemBox('CPF', d.cpf || p.cpf || '-')
+      + itemBox('Endereço', d.endereco || '-')
+      + itemBox('Item', d.itemDescricao || 'Produto não encontrado')
+      + '</div>' + (d.rawHint ? '<div class="muted" style="margin-top:10px;">' + safe(d.rawHint) + '</div>' : '');
+  }catch(e){
+    setStatus('Erro ao abrir nota: ' + e.message);
+  }
+}
+
+async function abrirComprovante(p){
+  try{
+    const r = await api('/api/order/' + encodeURIComponent(p.alias) + '/' + encodeURIComponent(p.pedidoId || ''));
+    const d = r.detail || {};
+    document.getElementById('notaBox').innerHTML =
+      '<div class="noteGrid">'
+      + itemBox('Loja', d.alias || p.alias || '-')
+      + itemBox('Pedido', d.pedido || p.pedidoNumero || p.pedidoId || '-')
+      + itemBox('Cliente', d.cliente || p.cliente || '-')
+      + itemBox('CPF', d.cpf || p.cpf || '-')
+      + itemBox('Endereço', d.endereco || '-')
+      + itemBox('Item', d.itemDescricao || 'Produto não encontrado')
+      + '</div>';
+
+    const merged = {
+      alias: d.alias || p.alias || '-',
+      pedido: d.pedido || p.pedidoNumero || p.pedidoId || '-',
+      data: d.data || p.data || '-',
+      cliente: d.cliente || p.cliente || '-',
+      cpf: d.cpf || p.cpf || '-',
+      nota: d.nota || p.nota || '-',
+      valor: d.valor || p.valor || '0',
+      subtotal: d.subtotal || d.valor || p.valor || '0',
+      total: d.total || d.valor || p.valor || '0',
+      endereco: d.endereco || '-',
+      itemDescricao: d.itemDescricao || 'Produto não encontrado',
+      rawHint: d.rawHint || ''
+    };
+    const w = window.open('', '_blank', 'width=820,height=900');
+    const html = `
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>Comprovante</title>
+<style>
+body{font-family:Arial,sans-serif;background:#fff;color:#000;margin:0;padding:20px}
+.wrap{max-width:760px;margin:0 auto}
+.head{display:flex;justify-content:space-between}
+.logo{font-size:34px;font-family:Georgia,serif;font-style:italic;margin-top:26px}
+.line{border-top:2px solid #000;margin:16px 0}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:14px}
+.row{margin-bottom:4px}
+table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px}
+th,td{border:1px solid #000;padding:6px;text-align:left}
+th{background:#f2f2f2}
+.totalBox{margin-top:14px;display:flex;justify-content:flex-end}
+.totalInner{width:260px}
+.totalInner div{display:flex;justify-content:space-between;padding:4px 0;font-size:15px}
+.center{margin-top:24px;text-align:center;font-size:14px}
+.printBar{margin-bottom:16px}
+@media print {.printBar{display:none}}
+
+.loginOverlay{position:fixed;inset:0;background:rgba(3,8,18,.78);display:flex;align-items:center;justify-content:center;z-index:9999}
+.loginCard{width:min(92vw,460px);background:#0f1d35;border:1px solid #33548a;border-radius:18px;padding:18px;box-shadow:0 20px 70px rgba(0,0,0,.45)}
+.loginTitle{font-size:20px;font-weight:700;margin-bottom:6px}
+.loginSub{color:#aac3ea;margin-bottom:14px;font-size:13px;line-height:1.5}
+.hidden{display:none!important}
+.roleBadge{display:inline-block;padding:3px 8px;border-radius:999px;background:#173153;border:1px solid #28466f;font-size:11px;margin-left:8px}
+.topActions{margin-top:10px}
+.topActions button{width:auto;display:inline-block;padding:8px 12px}
+
+
+.userGrid{display:grid;grid-template-columns:1.1fr .8fr .9fr auto auto auto;gap:8px;align-items:center}
+.userGrid.header{font-size:12px;color:#9fb5d6;margin-bottom:8px}
+.userRow{padding:10px;border:1px solid #28466f;border-radius:12px;background:#0c1423;margin-bottom:8px}
+.userMuted{color:#9fb5d6;font-size:12px}
+.userToolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.userToolbar button{width:auto}
+.userForm input,.userForm select{margin-bottom:8px}
+.userPill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;border:1px solid #28466f;background:#16335c}
+.userPill.blocked{background:#4a1222;border-color:#8b1e3f}
+.modalBg{position:fixed;inset:0;background:rgba(3,8,18,.78);display:none;align-items:center;justify-content:center;z-index:99999}
+.modalCard{width:min(92vw,520px);background:#0f1d35;border:1px solid #33548a;border-radius:18px;padding:18px;box-shadow:0 20px 70px rgba(0,0,0,.45)}
+.flexBetween{display:flex;justify-content:space-between;align-items:center;gap:10px}
+
+</style></head><body>
+<div class="wrap">
+<div class="printBar"><button onclick="window.print()">Imprimir</button></div>
+<div class="head"><div class="logo">Trevizio</div><div>${safe(merged.alias)}</div></div>
+<div class="line"></div>
+<div class="grid">
+<div>
+<div class="row"><strong>Pedido:</strong> ${safe(merged.pedido)}</div>
+<div class="row"><strong>Data:</strong> ${safe(merged.data)}</div>
+<div class="row"><strong>Cliente:</strong> ${safe(merged.cliente)}</div>
+<div class="row"><strong>CPF/CNPJ:</strong> ${safe(merged.cpf)}</div>
+<div class="row"><strong>Endereço:</strong> ${safe(merged.endereco)}</div>
+</div>
+<div>
+<div class="row"><strong>Nota:</strong> ${safe(merged.nota)}</div>
+<div class="row"><strong>Loja:</strong> ${safe(merged.alias)}</div>
+</div>
+</div>
+<table>
+<thead><tr><th>Item</th><th>Qtde</th><th>Valor</th><th>Total</th></tr></thead>
+<tbody><tr><td>${safe(merged.itemDescricao)}</td><td>1</td><td>${safe(money(merged.total))}</td><td>${safe(money(merged.total))}</td></tr></tbody>
+</table>
+<div class="totalBox"><div class="totalInner">
+<div><span>Sub total:</span><strong>${safe(money(merged.subtotal))}</strong></div>
+<div><span>Total:</span><strong>${safe(money(merged.total))}</strong></div>
+</div></div>
+<div class="center"><div>Obrigado pela preferência</div></div>
+${merged.rawHint ? '<div style="color:#666;font-size:12px">Obs.: ' + safe(merged.rawHint) + '</div>' : ''}
+</div></body></html>`;
+    w.document.open(); w.document.write(html); w.document.close();
+  }catch(e){ setStatus('Erro ao abrir comprovante: ' + e.message); }
+}
+
+function money(v){
+  let s = String(v==null?'':v).trim();
+  if(!s) return 'R$ 0,00';
+  s = s.replace(/[^\d,.-]/g,'');
+  if(s.indexOf(',')>=0) s = s.replace(/\./g,'').replace(',','.');
+  let n = Number(s);
+  if(isNaN(n)) return String(v||'-');
+  return n.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+}
+function itemBox(t,v){ return '<div class="noteItem"><div class="muted" style="margin-bottom:4px;">'+safe(t)+'</div><div>'+safe(v)+'</div></div>'; }
+function safe(v){ return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function esc(v){ return safe(v); }
+function escAttr(v){ return safe(v); }
+function escJs(v){ return String(v).replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
+function escAttrId(v){ return String(v).replace(/[^a-zA-Z0-9_]/g,'_'); }
+
+async function buscarIdadeDaLinha(p){
+  try{
+    if(!p || !p.data){ throw new Error('Pedido sem data.'); }
+    const data = String(p.data).slice(0,10);
+    const r = await api('/api/ages-by-period', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ startDate: data, endDate: data })
+    });
+    setStatus('Consulta concluída. Processados: ' + (r.processados||0) + ' | Idades encontradas: ' + (r.encontrados||0));
+    await carregarPedidos();
+  }catch(e){ setStatus('Erro ao buscar idade da linha: ' + e.message); }
+}
+
+function aplicarPeriodoRapido(){
+  const v = document.getElementById('periodPreset').value;
+  if(!v) return;
+  const dias = Number(v);
+  const hoje = new Date();
+  const ini = new Date();
+  ini.setDate(hoje.getDate() - (dias - 1));
+  const fmt = d => d.toISOString().slice(0,10);
+  document.getElementById('dataInicio').value = fmt(ini);
+  document.getElementById('dataFim').value = fmt(hoje);
+}
+
+async function buscarIdadesPorPeriodo(){
+  try{
+    const startDate = document.getElementById('dataInicio').value;
+    const endDate = document.getElementById('dataFim').value;
+    if(!startDate || !endDate) throw new Error('Escolha a data inicial e final.');
+    setStatus('Consultando idades do período...');
+    const r = await api('/api/ages-by-period', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ startDate, endDate })
+    });
+    setStatus('Consulta concluída. Processados: ' + (r.processados||0) + ' | Idades encontradas: ' + (r.encontrados||0));
+    await carregarPedidos();
+  }catch(e){ setStatus('Erro ao consultar idades por período: ' + e.message); }
+}
+
+async function abrirDebugCliente(p){
+  try{
+    const r = await api('/api/contact-debug/' + encodeURIComponent(p.alias) + '/' + encodeURIComponent(p.pedidoId || ''));
+    const phones = (r.phones || []).length ? (r.phones || []).map(x => '<li>' + safe(x) + '</li>').join('') : '<li>Nenhum número encontrado</li>';
+
+    const hist = (r.historicoTelefone || []).length
+      ? (r.historicoTelefone || []).map(x => '<li>' + safe(JSON.stringify(x)) + '</li>').join('')
+      : '<li>Nenhum histórico encontrado</li>';
+
+    const ult = (r.ultimoTelefone || []).length
+      ? (r.ultimoTelefone || []).map(x => '<li>' + safe(JSON.stringify(x)) + '</li>').join('')
+      : '<li>Nenhum último telefone encontrado</li>';
+
+    const w = window.open('', '_blank', 'width=950,height=850');
+    const popupHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Debug cliente</title><style>body{font-family:Consolas,monospace;background:#111;color:#eee;padding:16px}pre{white-space:pre-wrap;word-break:break-word;background:#1b1b1b;border:1px solid #333;padding:12px;border-radius:8px}ul{background:#1b1b1b;border:1px solid #333;padding:12px 20px;border-radius:8px}
+.userGrid{display:grid;grid-template-columns:1.1fr .8fr .9fr auto auto auto;gap:8px;align-items:center}
+.userGrid.header{font-size:12px;color:#9fb5d6;margin-bottom:8px}
+.userRow{padding:10px;border:1px solid #28466f;border-radius:12px;background:#0c1423;margin-bottom:8px}
+.userMuted{color:#9fb5d6;font-size:12px}
+.userToolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.userToolbar button{width:auto}
+.userForm input,.userForm select{margin-bottom:8px}
+.userPill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;border:1px solid #28466f;background:#16335c}
+.userPill.blocked{background:#4a1222;border-color:#8b1e3f}
+.modalBg{position:fixed;inset:0;background:rgba(3,8,18,.78);display:none;align-items:center;justify-content:center;z-index:99999}
+.modalCard{width:min(92vw,520px);background:#0f1d35;border:1px solid #33548a;border-radius:18px;padding:18px;box-shadow:0 20px 70px rgba(0,0,0,.45)}
+.flexBetween{display:flex;justify-content:space-between;align-items:center;gap:10px}
+
+</style></head><body><h2>Debug cliente (FDX por CPF)</h2><p><b>Loja:</b> ${safe(p.alias || '-')} | <b>Pedido:</b> ${safe(p.pedidoNumero || p.pedidoId || '-')} | <b>CPF:</b> ${safe(r.cpf || p.cpf || '-')}</p><h3>Telefones encontrados</h3><ul>${phones}</ul><h3>HISTORICO_TELEFONE</h3><ul>${hist}</ul><h3>ULTIMO_TELEFONE</h3><ul>${ult}</ul><h3>JSON bruto da FDX</h3><pre>${safe(r.rawJson || '{}')}</pre></body></html>`;
+    w.document.open(); w.document.write(popupHtml); w.document.close();
+  }catch(e){ setStatus('Erro ao abrir debug do cliente: ' + e.message); }
+}
+
+window.onload = async function(){ const ok = await validarSessao(); if(!ok){ aplicarPermissoes(); return; } aplicarPermissoes(); await carregarContas(); await carregarPedidos(); if(sessaoAtual && sessaoAtual.tipo === 'admin'){ await carregarUsuarios(); } };
+
+async function abrirDebugFDX(p){
+  try{
+    const cpf = (p.cpf || '').toString();
+    const r = await api('/api/fdx-debug/' + encodeURIComponent(cpf));
+    const w = window.open('','_blank','width=950,height=850');
+    const popupHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Debug FDX</title><style>body{font-family:Consolas,monospace;background:#111;color:#eee;padding:16px}pre{white-space:pre-wrap;word-break:break-word;background:#1b1b1b;border:1px solid #333;padding:12px;border-radius:8px}
+.userGrid{display:grid;grid-template-columns:1.1fr .8fr .9fr auto auto auto;gap:8px;align-items:center}
+.userGrid.header{font-size:12px;color:#9fb5d6;margin-bottom:8px}
+.userRow{padding:10px;border:1px solid #28466f;border-radius:12px;background:#0c1423;margin-bottom:8px}
+.userMuted{color:#9fb5d6;font-size:12px}
+.userToolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.userToolbar button{width:auto}
+.userForm input,.userForm select{margin-bottom:8px}
+.userPill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;border:1px solid #28466f;background:#16335c}
+.userPill.blocked{background:#4a1222;border-color:#8b1e3f}
+.modalBg{position:fixed;inset:0;background:rgba(3,8,18,.78);display:none;align-items:center;justify-content:center;z-index:99999}
+.modalCard{width:min(92vw,520px);background:#0f1d35;border:1px solid #33548a;border-radius:18px;padding:18px;box-shadow:0 20px 70px rgba(0,0,0,.45)}
+.flexBetween{display:flex;justify-content:space-between;align-items:center;gap:10px}
+
+</style></head><body><h2>Debug FDX</h2><p><b>CPF:</b> ${safe(cpf || '-')}</p><p><b>Idade encontrada:</b> ${safe((r.idade ?? '-') + '')}</p><pre>${safe(JSON.stringify(r.debug || {}, null, 2))}</pre></body></html>`;
+    w.document.open(); w.document.write(popupHtml); w.document.close();
+  }catch(e){ setStatus('Erro ao abrir debug FDX: ' + e.message); }
+}
+
+</script>
+</body>
+</html>
