@@ -46,18 +46,58 @@ th { position:sticky; top:0; background:#101a2d; color:#9fb5d6; }
 .topActions button{width:auto;display:inline-block;padding:8px 12px}
 
 
-.userGrid{display:grid;grid-template-columns:1.1fr .8fr .9fr auto auto auto;gap:8px;align-items:center}
-.userGrid.header{font-size:12px;color:#9fb5d6;margin-bottom:8px}
-.userRow{padding:10px;border:1px solid #28466f;border-radius:12px;background:#0c1423;margin-bottom:8px}
+.userGrid{
+  display:grid;
+  grid-template-columns: 1.2fr 1fr .9fr .9fr 1.6fr .8fr;
+  gap:10px;
+  align-items:center;
+}
+.userGrid.header{
+  font-size:12px;
+  color:#9fb5d6;
+  margin-bottom:8px;
+}
+.userRow{
+  padding:12px;
+  border:1px solid #28466f;
+  border-radius:12px;
+  background:#0c1423;
+  margin-bottom:8px;
+}
 .userMuted{color:#9fb5d6;font-size:12px}
-.userToolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-.userToolbar button{width:auto}
+.userToolbar{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+  align-items:center;
+  margin-top:0;
+}
+.userToolbar button{
+  width:auto;
+  min-width:88px;
+  padding:8px 10px;
+  border-radius:8px;
+  white-space:nowrap;
+}
 .userForm input,.userForm select{margin-bottom:8px}
 .userPill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;border:1px solid #28466f;background:#16335c}
 .userPill.blocked{background:#4a1222;border-color:#8b1e3f}
 .modalBg{position:fixed;inset:0;background:rgba(3,8,18,.78);display:none;align-items:center;justify-content:center;z-index:99999}
 .modalCard{width:min(92vw,520px);background:#0f1d35;border:1px solid #33548a;border-radius:18px;padding:18px;box-shadow:0 20px 70px rgba(0,0,0,.45)}
 .flexBetween{display:flex;justify-content:space-between;align-items:center;gap:10px}
+
+
+@media (max-width: 1200px){
+  .row{grid-template-columns:1fr}
+}
+@media (max-width: 760px){
+  .stats{grid-template-columns: repeat(2, 1fr);}
+  .userGrid{grid-template-columns:1fr}
+  .userGrid.header{display:none}
+  .userRow{gap:8px}
+  .userToolbar{justify-content:flex-start;margin-top:8px}
+}
 
 </style>
 </head>
@@ -648,18 +688,58 @@ th{background:#f2f2f2}
 .topActions button{width:auto;display:inline-block;padding:8px 12px}
 
 
-.userGrid{display:grid;grid-template-columns:1.1fr .8fr .9fr auto auto auto;gap:8px;align-items:center}
-.userGrid.header{font-size:12px;color:#9fb5d6;margin-bottom:8px}
-.userRow{padding:10px;border:1px solid #28466f;border-radius:12px;background:#0c1423;margin-bottom:8px}
+.userGrid{
+  display:grid;
+  grid-template-columns: 1.2fr 1fr .9fr .9fr 1.6fr .8fr;
+  gap:10px;
+  align-items:center;
+}
+.userGrid.header{
+  font-size:12px;
+  color:#9fb5d6;
+  margin-bottom:8px;
+}
+.userRow{
+  padding:12px;
+  border:1px solid #28466f;
+  border-radius:12px;
+  background:#0c1423;
+  margin-bottom:8px;
+}
 .userMuted{color:#9fb5d6;font-size:12px}
-.userToolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-.userToolbar button{width:auto}
+.userToolbar{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+  align-items:center;
+  margin-top:0;
+}
+.userToolbar button{
+  width:auto;
+  min-width:88px;
+  padding:8px 10px;
+  border-radius:8px;
+  white-space:nowrap;
+}
 .userForm input,.userForm select{margin-bottom:8px}
 .userPill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;border:1px solid #28466f;background:#16335c}
 .userPill.blocked{background:#4a1222;border-color:#8b1e3f}
 .modalBg{position:fixed;inset:0;background:rgba(3,8,18,.78);display:none;align-items:center;justify-content:center;z-index:99999}
 .modalCard{width:min(92vw,520px);background:#0f1d35;border:1px solid #33548a;border-radius:18px;padding:18px;box-shadow:0 20px 70px rgba(0,0,0,.45)}
 .flexBetween{display:flex;justify-content:space-between;align-items:center;gap:10px}
+
+
+@media (max-width: 1200px){
+  .row{grid-template-columns:1fr}
+}
+@media (max-width: 760px){
+  .stats{grid-template-columns: repeat(2, 1fr);}
+  .userGrid{grid-template-columns:1fr}
+  .userGrid.header{display:none}
+  .userRow{gap:8px}
+  .userToolbar{justify-content:flex-start;margin-top:8px}
+}
 
 </style></head><body>
 <div class="wrap">
@@ -767,18 +847,58 @@ async function abrirDebugCliente(p){
 
     const w = window.open('', '_blank', 'width=950,height=850');
     const popupHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Debug cliente</title><style>body{font-family:Consolas,monospace;background:#111;color:#eee;padding:16px}pre{white-space:pre-wrap;word-break:break-word;background:#1b1b1b;border:1px solid #333;padding:12px;border-radius:8px}ul{background:#1b1b1b;border:1px solid #333;padding:12px 20px;border-radius:8px}
-.userGrid{display:grid;grid-template-columns:1.1fr .8fr .9fr auto auto auto;gap:8px;align-items:center}
-.userGrid.header{font-size:12px;color:#9fb5d6;margin-bottom:8px}
-.userRow{padding:10px;border:1px solid #28466f;border-radius:12px;background:#0c1423;margin-bottom:8px}
+.userGrid{
+  display:grid;
+  grid-template-columns: 1.2fr 1fr .9fr .9fr 1.6fr .8fr;
+  gap:10px;
+  align-items:center;
+}
+.userGrid.header{
+  font-size:12px;
+  color:#9fb5d6;
+  margin-bottom:8px;
+}
+.userRow{
+  padding:12px;
+  border:1px solid #28466f;
+  border-radius:12px;
+  background:#0c1423;
+  margin-bottom:8px;
+}
 .userMuted{color:#9fb5d6;font-size:12px}
-.userToolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-.userToolbar button{width:auto}
+.userToolbar{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+  align-items:center;
+  margin-top:0;
+}
+.userToolbar button{
+  width:auto;
+  min-width:88px;
+  padding:8px 10px;
+  border-radius:8px;
+  white-space:nowrap;
+}
 .userForm input,.userForm select{margin-bottom:8px}
 .userPill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;border:1px solid #28466f;background:#16335c}
 .userPill.blocked{background:#4a1222;border-color:#8b1e3f}
 .modalBg{position:fixed;inset:0;background:rgba(3,8,18,.78);display:none;align-items:center;justify-content:center;z-index:99999}
 .modalCard{width:min(92vw,520px);background:#0f1d35;border:1px solid #33548a;border-radius:18px;padding:18px;box-shadow:0 20px 70px rgba(0,0,0,.45)}
 .flexBetween{display:flex;justify-content:space-between;align-items:center;gap:10px}
+
+
+@media (max-width: 1200px){
+  .row{grid-template-columns:1fr}
+}
+@media (max-width: 760px){
+  .stats{grid-template-columns: repeat(2, 1fr);}
+  .userGrid{grid-template-columns:1fr}
+  .userGrid.header{display:none}
+  .userRow{gap:8px}
+  .userToolbar{justify-content:flex-start;margin-top:8px}
+}
 
 </style></head><body><h2>Debug cliente (FDX por CPF)</h2><p><b>Loja:</b> ${safe(p.alias || '-')} | <b>Pedido:</b> ${safe(p.pedidoNumero || p.pedidoId || '-')} | <b>CPF:</b> ${safe(r.cpf || p.cpf || '-')}</p><h3>Telefones encontrados</h3><ul>${phones}</ul><h3>HISTORICO_TELEFONE</h3><ul>${hist}</ul><h3>ULTIMO_TELEFONE</h3><ul>${ult}</ul><h3>JSON bruto da FDX</h3><pre>${safe(r.rawJson || '{}')}</pre></body></html>`;
     w.document.open(); w.document.write(popupHtml); w.document.close();
@@ -793,18 +913,58 @@ async function abrirDebugFDX(p){
     const r = await api('/api/fdx-debug/' + encodeURIComponent(cpf));
     const w = window.open('','_blank','width=950,height=850');
     const popupHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Debug FDX</title><style>body{font-family:Consolas,monospace;background:#111;color:#eee;padding:16px}pre{white-space:pre-wrap;word-break:break-word;background:#1b1b1b;border:1px solid #333;padding:12px;border-radius:8px}
-.userGrid{display:grid;grid-template-columns:1.1fr .8fr .9fr auto auto auto;gap:8px;align-items:center}
-.userGrid.header{font-size:12px;color:#9fb5d6;margin-bottom:8px}
-.userRow{padding:10px;border:1px solid #28466f;border-radius:12px;background:#0c1423;margin-bottom:8px}
+.userGrid{
+  display:grid;
+  grid-template-columns: 1.2fr 1fr .9fr .9fr 1.6fr .8fr;
+  gap:10px;
+  align-items:center;
+}
+.userGrid.header{
+  font-size:12px;
+  color:#9fb5d6;
+  margin-bottom:8px;
+}
+.userRow{
+  padding:12px;
+  border:1px solid #28466f;
+  border-radius:12px;
+  background:#0c1423;
+  margin-bottom:8px;
+}
 .userMuted{color:#9fb5d6;font-size:12px}
-.userToolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-.userToolbar button{width:auto}
+.userToolbar{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+  align-items:center;
+  margin-top:0;
+}
+.userToolbar button{
+  width:auto;
+  min-width:88px;
+  padding:8px 10px;
+  border-radius:8px;
+  white-space:nowrap;
+}
 .userForm input,.userForm select{margin-bottom:8px}
 .userPill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;border:1px solid #28466f;background:#16335c}
 .userPill.blocked{background:#4a1222;border-color:#8b1e3f}
 .modalBg{position:fixed;inset:0;background:rgba(3,8,18,.78);display:none;align-items:center;justify-content:center;z-index:99999}
 .modalCard{width:min(92vw,520px);background:#0f1d35;border:1px solid #33548a;border-radius:18px;padding:18px;box-shadow:0 20px 70px rgba(0,0,0,.45)}
 .flexBetween{display:flex;justify-content:space-between;align-items:center;gap:10px}
+
+
+@media (max-width: 1200px){
+  .row{grid-template-columns:1fr}
+}
+@media (max-width: 760px){
+  .stats{grid-template-columns: repeat(2, 1fr);}
+  .userGrid{grid-template-columns:1fr}
+  .userGrid.header{display:none}
+  .userRow{gap:8px}
+  .userToolbar{justify-content:flex-start;margin-top:8px}
+}
 
 </style></head><body><h2>Debug FDX</h2><p><b>CPF:</b> ${safe(cpf || '-')}</p><p><b>Idade encontrada:</b> ${safe((r.idade ?? '-') + '')}</p><pre>${safe(JSON.stringify(r.debug || {}, null, 2))}</pre></body></html>`;
     w.document.open(); w.document.write(popupHtml); w.document.close();
