@@ -90,7 +90,7 @@ function BuscarIdadeCPF($cpf) {
     }
 }
 
-$FDX_TOKEN = "499490c3b21042fe891dafb2c067ef9d"
+$FDX_TOKEN = "33d3d68c55fb8fdf5c63fa03a55d4d1e"
 
 Write-Host "Trevizio Bling Multi iniciando..." -ForegroundColor Cyan
 
