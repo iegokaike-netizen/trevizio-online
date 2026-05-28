@@ -503,6 +503,16 @@ function Read-BodyJson($req) {
     if ([string]::IsNullOrWhiteSpace($body)) { return $null }
     return ($body | ConvertFrom-Json)
 }
+
+function Get-AliasesFromBody($body) {
+    $aliases = @()
+    if($null -eq $body -or $null -eq $body.aliases){ return @() }
+    foreach($x in @($body.aliases)){
+        $alias = ([string]$x).Trim()
+        if(-not [string]::IsNullOrWhiteSpace($alias)){ $aliases += $alias }
+    }
+    return @($aliases | Select-Object -Unique)
+}
 function Find-Account($alias) {
     foreach($a in (Get-Accounts)){ if([string]$a.alias -eq [string]$alias){ return $a } }
     return $null
@@ -1013,36 +1023,47 @@ function Get-CanalCodigo($alias, $obj) {
 }
 
 $script:LOJA_CANAL_CACHE = @{}
+function Select-LojaRawById($raw, $lojaId) {
+    if($null -eq $raw){ return $null }
+    if($raw.data){ $raw = $raw.data }
+    if($raw -is [System.Collections.IEnumerable] -and -not ($raw -is [string])){
+        foreach($x in @($raw)){
+            $xid = Get-PropValue $x @('id','codigo','código','numero')
+            if($xid -and [string]$xid -eq [string]$lojaId){ return $x }
+        }
+        if(@($raw).Count -eq 1){ return @($raw)[0] }
+        return $null
+    }
+    return $raw
+}
+
 function Get-LojaRawForChannel($alias, $lojaId) {
     if(-not $lojaId -or [string]::IsNullOrWhiteSpace([string]$lojaId) -or [string]$lojaId -eq '0'){ return $null }
     $cacheKey = "$alias|$lojaId"
     if($script:LOJA_CANAL_CACHE.ContainsKey($cacheKey)){ return $script:LOJA_CANAL_CACHE[$cacheKey] }
 
     $headers = Get-AuthHeader $alias
+    $encodedId = [System.Uri]::EscapeDataString([string]$lojaId)
+
+    # Primeiro tenta endpoints diretos. Depois tenta listagens, porque em algumas contas
+    # o Bling não retorna a loja virtual pelo endpoint com ID, mas retorna na lista.
     $tentativas = @(
-        "https://api.bling.com.br/Api/v3/lojas/$lojaId",
-        "https://api.bling.com.br/Api/v3/lojas/virtuais/$lojaId",
-        "https://api.bling.com.br/Api/v3/lojas?ids[]=$lojaId",
-        "https://api.bling.com.br/Api/v3/lojas/virtuais?ids[]=$lojaId"
+        "https://api.bling.com.br/Api/v3/lojas/$encodedId",
+        "https://api.bling.com.br/Api/v3/lojas/virtuais/$encodedId",
+        "https://api.bling.com.br/Api/v3/lojas?ids%5B%5D=$encodedId",
+        "https://api.bling.com.br/Api/v3/lojas/virtuais?ids%5B%5D=$encodedId",
+        "https://api.bling.com.br/Api/v3/lojas",
+        "https://api.bling.com.br/Api/v3/lojas/virtuais"
     )
 
     foreach($url in $tentativas){
         try{
             $resp = Invoke-RestMethod -Method Get -Uri $url -Headers $headers
-            $raw = if($resp.data){ $resp.data } else { $resp }
-            # Se a API devolver uma lista, usa apenas a loja do ID do pedido.
-            if($raw -is [System.Collections.IEnumerable] -and -not ($raw -is [string])){
-                $match = $null
-                foreach($x in @($raw)){
-                    $xid = Get-PropValue $x @('id','codigo','código','numero')
-                    if($xid -and [string]$xid -eq [string]$lojaId){ $match = $x; break }
-                }
-                if($match){ $raw = $match }
-                elseif(@($raw).Count -eq 1){ $raw = @($raw)[0] }
-                else { continue }
+            $raw = Select-LojaRawById $resp $lojaId
+            if($raw){
+                $script:LOJA_CANAL_CACHE[$cacheKey] = $raw
+                return $raw
             }
-            $script:LOJA_CANAL_CACHE[$cacheKey] = $raw
-            return $raw
         } catch {}
     }
 
@@ -1497,8 +1518,7 @@ try {
             if($path -eq "/api/sync-selected" -and $req.HttpMethod -eq "POST"){
                 $null = Require-Auth $req
                 $body = Read-BodyJson $req
-                $aliases = @()
-                if($body.aliases){ $aliases = @($body.aliases) }
+                $aliases = Get-AliasesFromBody $body
                 if($aliases.Count -eq 0){ throw "Selecione pelo menos uma loja para sincronizar." }
                 $orders = Sync-Accounts $aliases
                 Send-Json $ctx @{ok=$true; count=$orders.Count; aliases=$aliases}
@@ -1539,10 +1559,7 @@ if($path -eq "/api/ages-by-period" -and $req.HttpMethod -eq "POST"){
 
     $endDate = $endDate.Date.AddDays(1).AddSeconds(-1)
     $orders = Get-Orders
-    $aliasesFiltro = @()
-    if($body.aliases){
-        $aliasesFiltro = @($body.aliases | ForEach-Object { [string]$_ } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
-    }
+    $aliasesFiltro = Get-AliasesFromBody $body
     if($aliasesFiltro.Count -gt 0){
         $orders = @($orders | Where-Object { $aliasesFiltro -contains [string]$_.alias })
     }
@@ -1599,10 +1616,7 @@ if($path -eq "/api/ages-by-period-stream" -and $req.HttpMethod -eq "POST"){
 
         $endDate = $endDate.Date.AddDays(1).AddSeconds(-1)
         $orders = Get-Orders
-        $aliasesFiltro = @()
-        if($body.aliases){
-            $aliasesFiltro = @($body.aliases | ForEach-Object { [string]$_ } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
-        }
+        $aliasesFiltro = Get-AliasesFromBody $body
         if($aliasesFiltro.Count -gt 0){
             $orders = @($orders | Where-Object { $aliasesFiltro -contains [string]$_.alias })
         }
