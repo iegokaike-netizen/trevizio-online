@@ -172,6 +172,25 @@ function BuscarIdadeCPF($cpf) {
     }
 }
 
+function Invoke-BuscarIdadeComRetry($cpf, $tentativas = 3) {
+    for($i = 1; $i -le $tentativas; $i++){
+        try {
+            $idade = BuscarIdadeCPF $cpf
+            if($null -ne $idade){ return $idade }
+        } catch {}
+        if($i -lt $tentativas){ Start-Sleep -Milliseconds (1200 * $i) }
+    }
+    return $null
+}
+
+function Merge-SavedOrders($processados, $todos) {
+    $pArr = @($processados)
+    $tArr = @($todos)
+    if($pArr.Count -eq 0){ return $tArr }
+    if($pArr.Count -ge $tArr.Count){ return $pArr }
+    return @($pArr + @($tArr | Select-Object -Skip $pArr.Count))
+}
+
 $FDX_TOKEN = "756bbbc27db8a6664ef60c2b2cbe203a"
 
 Write-Host "Trevizio Bling Multi iniciando..." -ForegroundColor Cyan
@@ -473,28 +492,47 @@ function Get-BasicAuthHeader($clientId, $clientSecret) {
     "Basic " + [Convert]::ToBase64String($bytes)
 }
 function Send-Json($ctx, $obj, $status=200) {
-    $json = $obj | ConvertTo-Json -Depth 60
-    $bytes = [System.Text.Encoding]::UTF8.GetBytes($json)
-    $ctx.Response.StatusCode = $status
-    $ctx.Response.ContentType = "application/json; charset=utf-8"
-    $ctx.Response.ContentLength64 = $bytes.Length
-    $ctx.Response.OutputStream.Write($bytes,0,$bytes.Length)
-    $ctx.Response.OutputStream.Close()
+    try {
+        $json = $obj | ConvertTo-Json -Depth 60
+        $bytes = [System.Text.Encoding]::UTF8.GetBytes($json)
+        $ctx.Response.StatusCode = $status
+        $ctx.Response.ContentType = "application/json; charset=utf-8"
+        $ctx.Response.ContentLength64 = $bytes.Length
+        $ctx.Response.OutputStream.Write($bytes,0,$bytes.Length)
+        $ctx.Response.OutputStream.Close()
+    } catch {
+        try { $ctx.Response.Abort() } catch {}
+    }
 }
 function Send-Text($ctx, $text, $ctype="text/plain; charset=utf-8", $status=200) {
-    $bytes = [System.Text.Encoding]::UTF8.GetBytes($text)
-    $ctx.Response.StatusCode = $status
-    $ctx.Response.ContentType = $ctype
-    $ctx.Response.ContentLength64 = $bytes.Length
-    $ctx.Response.OutputStream.Write($bytes,0,$bytes.Length)
-    $ctx.Response.OutputStream.Close()
+    try {
+        $bytes = [System.Text.Encoding]::UTF8.GetBytes($text)
+        $ctx.Response.StatusCode = $status
+        $ctx.Response.ContentType = $ctype
+        $ctx.Response.ContentLength64 = $bytes.Length
+        $ctx.Response.OutputStream.Write($bytes,0,$bytes.Length)
+        $ctx.Response.OutputStream.Close()
+    } catch {
+        try { $ctx.Response.Abort() } catch {}
+    }
 }
 
 function Write-StreamJson($ctx, $obj) {
-    $json = ($obj | ConvertTo-Json -Compress -Depth 20) + "`n"
-    $bytes = [System.Text.Encoding]::UTF8.GetBytes($json)
-    $ctx.Response.OutputStream.Write($bytes,0,$bytes.Length)
-    $ctx.Response.OutputStream.Flush()
+    try {
+        $json = ($obj | ConvertTo-Json -Compress -Depth 20) + "`n"
+        $bytes = [System.Text.Encoding]::UTF8.GetBytes($json)
+        $ctx.Response.OutputStream.Write($bytes,0,$bytes.Length)
+        $ctx.Response.OutputStream.Flush()
+        return $true
+    } catch {
+        # Cliente desconectou (fechou a aba / proxy cortou). Não derruba o servidor.
+        try { $ctx.Response.Abort() } catch {}
+        return $false
+    }
+}
+
+function Close-StreamSafe($ctx) {
+    try { $ctx.Response.OutputStream.Close() } catch {}
 }
 
 function Read-BodyJson($req) {
@@ -2015,13 +2053,14 @@ if($path -eq "/api/ages-by-period" -and $req.HttpMethod -eq "POST"){
 if($path -eq "/api/ages-by-period-stream" -and $req.HttpMethod -eq "POST"){
     $ctx.Response.StatusCode = 200
     $ctx.Response.ContentType = "application/x-ndjson; charset=utf-8"
+    $clienteDesconectou = $false
     try {
         $body = Read-BodyJson $req
         $startDate = Parse-OrderDate $body.startDate
         $endDate = Parse-OrderDate $body.endDate
         if($null -eq $startDate -or $null -eq $endDate){
-            Write-StreamJson $ctx @{ type="error"; error="Período inválido" }
-            $ctx.Response.OutputStream.Close()
+            [void](Write-StreamJson $ctx @{ type="error"; error="Período inválido" })
+            Close-StreamSafe $ctx
             continue
         }
 
@@ -2036,6 +2075,9 @@ if($path -eq "/api/ages-by-period-stream" -and $req.HttpMethod -eq "POST"){
         $processados = 0
         $encontrados = 0
         $total = 0
+        $consultasFeitas = 0
+        $desdeUltimoSave = 0
+        $cpfIdadeCache = @{}
 
         foreach($o in $orders){
             $od = Parse-OrderDate $o.data
@@ -2045,14 +2087,14 @@ if($path -eq "/api/ages-by-period-stream" -and $req.HttpMethod -eq "POST"){
         }
 
         if($total -eq 0){
-            Write-StreamJson $ctx @{ type="progress"; percent=100; message="Nenhum pedido no período." }
-            Write-StreamJson $ctx @{ type="done"; ok=$true; processados=0; encontrados=0 }
-            $ctx.Response.OutputStream.Close()
+            [void](Write-StreamJson $ctx @{ type="progress"; percent=100; message="Nenhum pedido no período." })
+            [void](Write-StreamJson $ctx @{ type="done"; ok=$true; processados=0; encontrados=0 })
+            Close-StreamSafe $ctx
             continue
         }
 
         $atual = 0
-        Write-StreamJson $ctx @{ type="progress"; percent=0; message="Iniciando consulta..." }
+        if(-not (Write-StreamJson $ctx @{ type="progress"; percent=0; message="Iniciando consulta..." })){ $clienteDesconectou = $true }
 
         foreach($o in $orders){
             $od = Parse-OrderDate $o.data
@@ -2060,32 +2102,60 @@ if($path -eq "/api/ages-by-period-stream" -and $req.HttpMethod -eq "POST"){
                 $atual++
                 $processados++
                 if((Is-OrderAgeMissing $o) -and $o.cpf){
-                    $idadeResp = BuscarIdadeCPF $o.cpf
-                    if($idadeResp -ne $null){
+                    $cpfChave = ([string]$o.cpf) -replace '[^\d]', ''
+                    if([string]::IsNullOrWhiteSpace($cpfChave)){ $cpfChave = [string]$o.cpf }
+                    $idadeResp = $null
+                    if($cpfIdadeCache.ContainsKey($cpfChave)){ $idadeResp = $cpfIdadeCache[$cpfChave] }
+                    else {
+                        $idadeResp = Invoke-BuscarIdadeComRetry $cpfChave 3
+                        $cpfIdadeCache[$cpfChave] = $idadeResp
+                        $consultasFeitas++
+                        if(($consultasFeitas % 10) -eq 0){ Start-Sleep -Milliseconds 700 }
+                    }
+                    if($null -ne $idadeResp){
                         Set-OrderAge $o $idadeResp
                         Set-AgeValue $ages $o.alias $o.cpf $o.cliente $o.idade
                         $updated = @(Update-AgeForMatchingOrders $updated $o.alias $o.cpf $o.cliente $o.idade)
                         $encontrados++
+                        $desdeUltimoSave++
+                        # Salva a cada 3 idades encontradas para não perder nada se a conexão cair
+                        if(($desdeUltimoSave % 3) -eq 0){
+                            Write-JsonFile $agesPath $ages
+                            Save-Orders (Merge-SavedOrders $updated $orders)
+                            $desdeUltimoSave = 0
+                        }
                     }
                 }
                 $percent = [math]::Floor(($atual / $total) * 100)
                 $nomeCliente = if($o.cliente){ [string]$o.cliente } else { "-" }
-                Write-StreamJson $ctx @{
-                    type="progress"
-                    percent=$percent
-                    message=("Processando {0} de {1}: {2}" -f $atual, $total, $nomeCliente)
+                if(-not $clienteDesconectou){
+                    if(-not (Write-StreamJson $ctx @{
+                        type="progress"
+                        percent=$percent
+                        message=("Processando {0} de {1}: {2}" -f $atual, $total, $nomeCliente)
+                    })){ $clienteDesconectou = $true }
                 }
             }
             $updated += $o
         }
 
+        # Salvamento final garantido (mesmo se o navegador desconectou no meio)
         Write-JsonFile $agesPath $ages
         Save-Orders $updated
-        Write-StreamJson $ctx @{ type="done"; ok=$true; processados=$processados; encontrados=$encontrados }
+        if(-not $clienteDesconectou){
+            [void](Write-StreamJson $ctx @{ type="done"; ok=$true; processados=$processados; encontrados=$encontrados })
+        }
     } catch {
-        Write-StreamJson $ctx @{ type="error"; error=$_.Exception.Message }
+        # Tenta salvar o que já foi processado antes de reportar o erro
+        # (Merge garante que nunca salva uma lista truncada, preservando as notas restantes)
+        try {
+            if($ages){ Write-JsonFile $agesPath $ages }
+            if($updated -and $orders){ Save-Orders (Merge-SavedOrders $updated $orders) }
+            elseif($updated){ Save-Orders $updated }
+        } catch {}
+        [void](Write-StreamJson $ctx @{ type="error"; error=$_.Exception.Message })
     }
-    $ctx.Response.OutputStream.Close()
+    Close-StreamSafe $ctx
     continue
 }
 
