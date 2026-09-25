@@ -1,9 +1,0 @@
-services:
-  - type: web
-    name: trevizio-bling-multi
-    runtime: docker
-    plan: free
-    autoDeploy: false
-    envVars:
-      - key: DATA_DIR
-        value: /app/data
