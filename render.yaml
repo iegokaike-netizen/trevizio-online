@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: trevizio-bling-multi
+    runtime: docker
+    plan: free
+    autoDeploy: false
+    healthCheckPath: /api/health
+    envVars:
+      - key: DATA_DIR
+        value: /app/data
